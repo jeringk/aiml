@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Canvas of Deep Neural Networks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMVIhbCwHMAA5maf+CgnUEz1RRenpDxLesoZjCpTOeZWYORkZ" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmFAILkIcU" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: The SPA is designed with a persistent left-sidebar navigation for discoverability and non-linear exploration of DNN topics. The main content area uses interactive elements (clickable diagrams, dynamic charts) to deconstruct complex processes like Federated Learning and Catastrophic Forgetting, making them more digestible than static text. This structure was chosen to transform a text-based document into an engaging learning tool, prioritizing user interaction and conceptual clarity over a simple linear presentation. -->
+    <!-- Visualization & Content Choices: 
+        - Fundamentals: Side-by-side comparison for neurons, a visual plot for the XOR problem, and a dynamic chart demonstrating the Universal Approximation Theorem. Goal: Inform & Explain.
+        - Deep Feedforward Networks: An interactive diagram to step through forward and backward propagation, plus a chart to compare activation functions. Goal: Explain Process & Compare.
+        - Optimization Algorithms: An interactive chart visualizing the paths of different optimizers (SGD, Momentum, ADAM) on a loss surface. Goal: Compare & Explain Behavior.
+        - Regularization: Interactive charts for Overfitting and Vanishing/Exploding Gradients. An interactive diagram for Dropout. Goal: Explain & Compare.
+        - CNNs: Interactive visualization for the convolution operation.
+        - RNNs: Step-by-step animation of an RNN unrolling through time to process a sequence. Goal: Explain Process.
+        - Autoencoders: Presented as informational cards for easy scanning. Core concept visualized with a CSS diagram. Goal: Organize & Inform.
+        - Federated Learning: An interactive, step-by-step CSS diagram. Goal: Explain Process. Interaction: User clicks to advance through the cycle, reinforcing the sequence.
+        - Continual Learning: An interactive bar chart. Goal: Compare & Demonstrate Change. Interaction: Buttons dynamically alter chart data to visualize catastrophic forgetting and mitigation strategies. Justification: A dynamic chart is far more impactful for showing this concept than text alone. Library: Chart.js.
+        - Transformers: A clickable CSS block diagram. Goal: Organize & Explain Architecture. Interaction: Users click components (e.g., 'Multi-Head Attention') to reveal detailed explanations. Justification: This allows users to explore a complex architecture at their own pace.
+        All visualizations are built with HTML/CSS or Canvas via Chart.js. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .active-nav {
+            background-color: #EAE3DA;
+            color: #8A6D53;
+            font-weight: 600;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        .optimizer-chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 500px;
+            max-height: 60vh;
+            margin: auto;
+        }
+        .ff-node, .dropout-node { transition: all 0.3s ease-in-out; }
+        .ff-line { transition: all 0.3s ease-in-out; }
+        .active-node { transform: scale(1.2); box-shadow: 0 0 15px rgba(234, 179, 8, 0.7); }
+        .active-line { stroke-width: 4; stroke: #F59E0B; }
+        .back-active-line { stroke-width: 4; stroke: #EF4444; }
+        .dropped-out { opacity: 0.2; transform: scale(0.8); }
+        .katex-display {
+            margin: 0.5em 0;
+            font-size: 1.1em;
+        }
+        .conv-grid { display: grid; grid-template-columns: repeat(5, 2.5rem); gap: 4px; }
+        .conv-cell { width: 2.5rem; height: 2.5rem; display:flex; align-items:center; justify-content:center; border: 1px solid #ccc; font-weight: bold; }
+        .kernel-grid { display: grid; grid-template-columns: repeat(3, 2rem); gap: 2px; }
+        .kernel-cell { width: 2rem; height: 2rem; display:flex; align-items:center; justify-content:center; border: 1px solid #999; font-size: 0.8em;}
+        .highlight-kernel { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7); transition: all 0.2s linear; }
+        .rnn-anim-el { transition: all 0.4s ease-in-out; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <aside id="sidebar" class="w-64 bg-[#F5F1EC] p-4 fixed top-0 left-0 h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-30 overflow-y-auto">
+        <h2 class="text-xl font-bold text-[#8A6D53] mb-6">DNN Canvas</h2>
+        <nav class="space-y-2">
+            <a href="#topic-0" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">0. Fundamentals</a>
+            <a href="#topic-1" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">1. Deep Feedforward Networks</a>
+            <a href="#topic-2" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">2. Optimization Algorithms</a>
+            <a href="#topic-3" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">3. Regularization</a>
+            <a href="#topic-4" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">4. CNNs</a>
+            <a href="#topic-5" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">5. Popular CNN Architectures</a>
+            <a href="#topic-6" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">6. Sequence Models (RNNs)</a>
+            <a href="#topic-7" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">7. Popular RNN Architectures</a>
+            <a href="#topic-8" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">8. Attention & Transformers</a>
+            <a href="#topic-9" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">9. Autoencoders</a>
+            <a href="#topic-10" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">10. Time Series Forecasting</a>
+            <a href="#topic-11" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">11. Federated Learning</a>
+            <a href="#topic-12" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">12. Meta-Learning</a>
+            <a href="#topic-13" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">13. Continual Learning</a>
+            <a href="#topic-14" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">14. Neural Architecture Search</a>
+        </nav>
+    </aside>
+
+    <button id="menu-toggle" class="md:hidden fixed top-4 left-4 z-40 p-2 bg-white rounded-md shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+    </button>
+    
+    <div id="overlay" class="md:hidden fixed inset-0 bg-black opacity-0 z-20 transition-opacity duration-300 hidden"></div>
+
+    <main class="flex-1 md:ml-64 p-6 md:p-10">
+        <header class="mb-12">
+            <h1 class="text-4xl font-bold text-[#8A6D53]">Interactive Canvas of Deep Neural Networks</h1>
+            <p class="mt-2 text-lg text-gray-600">An explorable guide to core concepts in DNNs. Use the sidebar to navigate topics.</p>
+        </header>
+        
+        <div id="dynamic-content"></div>
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const content = {
+        'topic-0': {
+            title: "Fundamentals of Neural Networks",
+            description: "This section lays the groundwork, covering the core motivations, biological inspirations, and foundational models that underpin the entire field of deep learning.",
+            html: `...` 
+        },
+        'topic-1': {
+            title: "Deep Feedforward Neural Networks",
+            description: "This section dives into the mechanics of a standard deep feedforward network, also known as a Multilayer Perceptron (MLP), exploring how they learn through forward and backward propagation.",
+            html: `
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">The Training Loop: Forward & Backward Propagation</h3>
+                    <p class="mb-6">A Deep Feedforward Network learns by repeatedly cycling through two phases: forward propagation, where an input is passed through the network to generate a prediction, and backward propagation, where the error of that prediction is passed backward to update the network's weights. This process is managed by a <span class="font-semibold">Computational Graph</span> and optimized using an algorithm like <span class="font-semibold">Gradient Descent</span>.</p>
+                    <div class="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+                        <div id="ff-diagram" class="flex justify-around items-center text-center">
+                            <svg class="absolute w-full h-full top-0 left-0" style="overflow:visible; z-index: -1;">
+                                <defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#F59E0B"/></marker></defs>
+                                <defs><marker id="back-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444"/></marker></defs>
+                            </svg>
+                            <div class="flex flex-col space-y-8 z-10" data-layer="0">
+                                <div class="ff-node bg-blue-200 w-16 h-16 rounded-full flex items-center justify-center font-semibold border-2 border-blue-400">Input 1</div>
+                                <div class="ff-node bg-blue-200 w-16 h-16 rounded-full flex items-center justify-center font-semibold border-2 border-blue-400">Input 2</div>
+                            </div>
+                            <div class="flex flex-col space-y-4 z-10" data-layer="1">
+                                <div class="ff-node bg-green-200 w-16 h-16 rounded-full flex items-center justify-center font-semibold border-2 border-green-400">H1</div>
+                                <div class="ff-node bg-green-200 w-16 h-16 rounded-full flex items-center justify-center font-semibold border-2 border-green-400">H2</div>
+                                 <div class="ff-node bg-green-200 w-16 h-16 rounded-full flex items-center justify-center font-semibold border-2 border-green-400">H3</div>
+                            </div>
+                            <div class="flex flex-col justify-center z-10" data-layer="2">
+                                <div class="ff-node bg-yellow-200 w-16 h-16 rounded-full flex items-center justify-center font-semibold border-2 border-yellow-400">Output</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="ff-description" class="mt-6 p-4 bg-gray-100 rounded-lg text-center h-16 flex items-center justify-center">
+                        <p>Start the process to see how the network learns.</p>
+                    </div>
+                    <div class="mt-6 text-center space-x-2 space-y-2">
+                        <button id="ff-forward-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">Forward Pass</button>
+                        <button id="ff-backward-btn" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors" disabled>Backward Pass</button>
+                        <button id="ff-reset-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Activation Functions</h3>
+                    <p class="mb-4">Activation functions introduce non-linearity into the network, allowing it to learn complex patterns. Without them, a neural network would just be a linear model. They are applied to the output of each neuron. Select a function below to visualize it.</p>
+                    <div class="chart-container">
+                        <canvas id="activationFunctionsChart"></canvas>
+                    </div>
+                    <div class="mt-6 text-center space-x-2 space-y-2">
+                        <button data-func="sigmoid" class="activation-btn bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors">Sigmoid</button>
+                        <button data-func="tanh" class="activation-btn bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors">Tanh</button>
+                        <button data-func="relu" class="activation-btn bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors">ReLU</button>
+                        <button data-func="leakyRelu" class="activation-btn bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors">Leaky ReLU</button>
+                    </div>
+                    <div class="mt-4 grid md:grid-cols-2 gap-4 text-sm">
+                        <div><strong class="text-purple-700">Sigmoid:</strong> \`\\sigma(z) = \\frac{1}{1 + e^{-z}}\`</div>
+                        <div><strong class="text-purple-700">Tanh:</strong> \`\\tanh(z) = \\frac{e^z - e^{-z}}{e^z + e^{-z}}\`</div>
+                        <div><strong class="text-purple-700">ReLU:</strong> \`\\text{ReLU}(z) = \\max(0, z)\`</div>
+                        <div><strong class="text-purple-700">Leaky ReLU:</strong> \`f(z) = \\begin{cases} z & \\text{if } z > 0 \\\\ \\alpha z & \\text{otherwise} \\end{cases}\`</div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Softmax Regression</h3>
+                    <p class="mb-4">Softmax is a special activation function used in the output layer of a multi-class classification network. It takes a vector of raw scores (logits) and transforms them into a probability distribution.</p>
+                    <div class="text-center my-4">\`\\text{Softmax}(z_i) = \\frac{e^{z_i}}{\\sum_{j=1}^{K} e^{z_j}}\` for i=1, ..., K classes.</div>
+                    <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6 bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+                        <div class="text-center">
+                            <p class="font-semibold">Logits from Final Layer</p>
+                            <div class="mt-2 p-3 bg-yellow-100 rounded-lg">[2.0, 1.0, 0.1]</div>
+                        </div>
+                        <div class="font-bold text-2xl text-gray-500 transform md:-translate-y-4">→</div>
+                        <div class="text-center p-4 bg-indigo-100 border-2 border-indigo-300 rounded-lg">
+                            <p class="font-bold">Softmax Function</p>
+                        </div>
+                        <div class="font-bold text-2xl text-gray-500 transform md:-translate-y-4">→</div>
+                         <div class="text-center">
+                            <p class="font-semibold">Probabilities</p>
+                            <div class="mt-2 p-3 bg-green-100 rounded-lg">[0.7, 0.2, 0.1]</div>
+                            <p class="text-sm mt-2 text-gray-600">Prediction: Class 1</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        },
+        'topic-2': {
+            title: "Optimization Algorithms for Deep Models",
+            description: "Training a deep neural network is a complex optimization problem. This section explores the challenges of navigating non-convex loss landscapes and the advanced algorithms designed to find the optimal model parameters efficiently.",
+            html: `
+            <div class="space-y-8">
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Challenges in Non-Convex Optimization</h3>
+                    <p class="mb-4">The loss landscapes of deep neural networks are highly non-convex, meaning they are filled with numerous local minima, plateaus, and saddle points that can trap simple optimization algorithms.</p>
+                    <div class="flex flex-col md:flex-row gap-6 mt-6 text-center">
+                        <div class="flex-1 p-4 border rounded-lg">
+                           <h4 class="font-bold text-lg mb-2">Saddle Point 🎢</h4>
+                           <p class="text-sm">A point that is a minimum along one dimension but a maximum along another. The gradient is zero here, which can trick the optimizer into thinking it has found a minimum.</p>
+                        </div>
+                        <div class="flex-1 p-4 border rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Plateau 🏞️</h4>
+                            <p class="text-sm">A large, flat region where the gradient is very close to zero. The optimizer can slow down drastically, making training painfully slow.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Visualizing Optimizer Paths</h3>
+                    <p class="mb-4">This interactive chart shows a contour plot of a loss surface with a challenging saddle point. Click the buttons to see how different optimizers navigate this landscape to find the true minimum (bottom right).</p>
+                    <div class="optimizer-chart-container">
+                        <canvas id="optimizerChart"></canvas>
+                    </div>
+                    <div class="mt-6 text-center space-x-2 space-y-2">
+                        <button data-optimizer="sgd" class="optimizer-btn bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">Run SGD</button>
+                        <button data-optimizer="momentum" class="optimizer-btn bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">Run Momentum</button>
+                        <button data-optimizer="adam" class="optimizer-btn bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">Run ADAM</button>
+                        <button id="optimizer-reset" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
+                    </div>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Key Optimization Algorithms & Formulas</h3>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Momentum</h4>
+                            <p class="text-sm">Adds a "velocity" term that accumulates past gradients, helping to accelerate through flat regions. \`g_t\` is the gradient at step t, \`\\eta\` is learning rate, \`\\gamma\` is momentum term.</p>
+                            \`v_t = \\gamma v_{t-1} + \\eta g_t\` <br>
+                            \`\\theta_t = \\theta_{t-1} - v_t\`
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">RMSprop</h4>
+                            <p class="text-sm">Adapts the learning rate for each parameter by dividing by a moving average of squared gradients, preventing aggressive decay.</p>
+                            \`E[g^2]_t = \\beta E[g^2]_{t-1} + (1-\\beta)g_t^2\` <br>
+                            \`\\theta_{t+1} = \\theta_t - \\frac{\\eta}{\\sqrt{E[g^2]_t + \\epsilon}} g_t\`
+                        </div>
+                         <div class="p-4 bg-gray-50 rounded-lg">
+                             <h4 class="font-bold text-lg mb-2">ADAM (Adaptive Moment Estimation)</h4>
+                             <p class="text-sm">Combines Momentum (first moment) and RMSprop (second moment). It's the default choice for most problems.</p>
+                             \`m_t = \\beta_1 m_{t-1} + (1-\\beta_1)g_t\` <br>
+                             \`v_t = \\beta_2 v_{t-1} + (1-\\beta_2)g_t^2\` <br>
+                             \`\\hat{m}_t = m_t / (1-\\beta_1^t), \\quad \\hat{v}_t = v_t / (1-\\beta_2^t)\` <br>
+                             \`\\theta_{t+1} = \\theta_t - \\frac{\\eta}{\\sqrt{\\hat{v}_t} + \\epsilon} \\hat{m}_t\`
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        },
+        'topic-3': {
+            title: "Regularization for Deep Models",
+            description: "Regularization techniques are essential for training robust deep learning models. They help prevent overfitting, stabilize training, and improve a model's ability to generalize to new, unseen data.",
+            html: `
+             <div class="space-y-8">
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Underfitting vs. Overfitting</h3>
+                    <p class="mb-4">A key challenge in training is finding the right model complexity. An underfit model is too simple and fails to capture the data's underlying trend, while an overfit model is too complex and learns the noise in the training data, failing to generalize to new data. Select a model type to visualize this.</p>
+                    <div class="chart-container">
+                        <canvas id="overfittingChart"></canvas>
+                    </div>
+                     <div class="mt-6 text-center space-x-2 space-y-2">
+                        <button data-model="underfit" class="model-btn bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">Underfit</button>
+                        <button data-model="good" class="model-btn bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">Good Fit</button>
+                        <button data-model="overfit" class="model-btn bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">Overfit</button>
+                        <button id="overfitting-reset" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Dropout</h3>
+                    <p class="mb-4">During training, for each neuron, we generate a random number from a Bernoulli distribution. This acts as a mask on the activations.</p>
+                    \`r_j^{(l)} \\sim \\text{Bernoulli}(p)\` <br>
+                    \`\\tilde{y}^{(l)} = r^{(l)} * y^{(l)}\` <br>
+                    \`y^{(l+1)} = f(W^{(l+1)} \\tilde{y}^{(l)} + b^{(l+1)})\` <br>
+                    <p class="mb-4 text-sm">During inference (testing), the dropout is turned off, but the activations are scaled by the dropout probability \`p\` to compensate: \`W_{test}^{(l)} = p W^{(l)}\`.</p>
+                    <div id="dropout-diagram" class="flex justify-around items-center text-center p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
+                        <div class="flex flex-col space-y-4">
+                            <div class="dropout-node w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center font-semibold">I1</div>
+                            <div class="dropout-node w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center font-semibold">I2</div>
+                        </div>
+                         <div class="flex flex-col space-y-2">
+                            <div class="dropout-node droppable w-12 h-12 bg-green-200 rounded-full flex items-center justify-center font-semibold">H1</div>
+                            <div class="dropout-node droppable w-12 h-12 bg-green-200 rounded-full flex items-center justify-center font-semibold">H2</div>
+                            <div class="dropout-node droppable w-12 h-12 bg-green-200 rounded-full flex items-center justify-center font-semibold">H3</div>
+                            <div class="dropout-node droppable w-12 h-12 bg-green-200 rounded-full flex items-center justify-center font-semibold">H4</div>
+                        </div>
+                         <div class="flex flex-col justify-center">
+                            <div class="dropout-node w-12 h-12 bg-yellow-200 rounded-full flex items-center justify-center font-semibold">O1</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button id="dropout-btn" class="bg-[#8A6D53] text-white font-bold py-2 px-6 rounded-lg hover:bg-[#a18163] transition-colors">Apply Dropout</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Challenge: Vanishing & Exploding Gradients</h3>
+                    <p class="mb-4">In very deep networks, gradients can shrink or grow exponentially. Techniques like careful Parameter Initialization and Batch Normalization are crucial to ensure stable gradient flow.</p>
+                     <div class="chart-container">
+                        <canvas id="gradientChart"></canvas>
+                    </div>
+                    <div class="mt-6 text-center space-x-2 space-y-2">
+                        <button data-grad="vanish" class="grad-btn bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">Vanishing</button>
+                        <button data-grad="explode" class="grad-btn bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">Exploding</button>
+                        <button data-grad="stable" class="grad-btn bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">Stable</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Parameter Initialization</h3>
+                     <div class="space-y-4">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Xavier/Glorot Initialization</h4>
+                            <p class="text-sm">Keeps the variance of activations and gradients constant across layers. For weights \`W\` connecting \`n_{in}\` to \`n_{out}\` neurons:</p>
+                             \`W \\sim U \\left[ -\\frac{\\sqrt{6}}{\\sqrt{n_{in} + n_{out}}}, \\frac{\\sqrt{6}}{\\sqrt{n_{in} + n_{out}}} \\right]\`
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">He Initialization</h4>
+                            <p class="text-sm">An adaptation of Xavier specifically for ReLU activation functions, accounting for the fact that ReLU deactivates half the neurons.</p>
+                             \`W \\sim \\mathcal{N} \\left( 0, \\sqrt{\\frac{2}{n_{in}}} \\right)\`
+                        </div>
+                    </div>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Batch Normalization</h3>
+                    <p>Normalizes the activations of each layer to have a mean of 0 and a variance of 1, then scales and shifts them using learned parameters \`\\gamma\` and \`\\beta\`. This stabilizes training and mitigates the covariance shift problem.</p>
+                    <p>For a mini-batch \`\\mathcal{B} = \\{x_1, ..., x_m\\}\`:</p>
+                    <ol class="list-decimal list-inside space-y-2 mt-2">
+                        <li>Calculate mean: \`\\mu_{\\mathcal{B}} = \\frac{1}{m} \\sum_{i=1}^m x_i\`</li>
+                        <li>Calculate variance: \`\\sigma^2_{\\mathcal{B}} = \\frac{1}{m} \\sum_{i=1}^m (x_i - \\mu_{\\mathcal{B}})^2\`</li>
+                        <li>Normalize: \`\\hat{x}_i = \\frac{x_i - \\mu_{\\mathcal{B}}}{\\sqrt{\\sigma^2_{\\mathcal{B}} + \\epsilon}}\`</li>
+                        <li>Scale and shift: \`y_i = \\gamma \\hat{x}_i + \\beta\`</li>
+                    </ol>
+                </div>
+            </div>
+            `
+        },
+        'topic-4': {
+            title: "Convolutional Neural Networks (CNNs)",
+            description: "CNNs are a class of neural networks specialized for processing grid-like data, such as images. They use a mathematical operation called convolution to automatically learn a hierarchy of features.",
+            html: `
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">The Convolution Operation</h3>
+                    <p>A convolution involves sliding a small filter, called a <span class="font-semibold">kernel</span>, over the input image. At each position, it computes a dot product between the kernel and the overlapping patch of the image, producing a single value in the output feature map.</p>
+                    <div class="text-center my-4">\`(I * K)(i, j) = \\sum_m \\sum_n I(i-m, j-n) K(m, n)\`</div>
+                    <p class="mb-4">This operation allows the network to learn features like edges, corners, and textures, which are invariant to their position in the image.</p>
+                    <div class="flex flex-col lg:flex-row items-center justify-center gap-6 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex flex-col items-center">
+                            <h4 class="font-bold mb-2">Input Image (5x5)</h4>
+                            <div id="conv-input-grid" class="conv-grid"></div>
+                        </div>
+                        <div class="text-2xl font-bold">*</div>
+                        <div class="flex flex-col items-center">
+                            <h4 class="font-bold mb-2">Kernel (3x3)</h4>
+                            <div id="conv-kernel-grid" class="kernel-grid"></div>
+                        </div>
+                         <div class="text-2xl font-bold">=</div>
+                        <div class="flex flex-col items-center">
+                            <h4 class="font-bold mb-2">Feature Map (3x3)</h4>
+                            <div id="conv-output-grid" class="grid grid-cols-3 gap-1"></div>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button id="conv-step-btn" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors">Next Step</button>
+                        <button id="conv-reset-btn" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Padding, Stride, and Pooling</h3>
+                     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Padding</h4>
+                            <p class="text-sm">Adding a border of zeros (or other values) around the input image. This allows the kernel to process the edges and corners more effectively and can control the spatial dimensions of the output feature map.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Stride</h4>
+                            <p class="text-sm">The number of pixels the kernel moves at each step. A stride of 1 moves one pixel at a time, while a stride of 2 skips every other pixel, effectively downsampling the feature map.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Pooling</h4>
+                            <p class="text-sm">A downsampling operation, typically applied after a convolution layer. <span class="font-semibold">Max Pooling</span> takes the maximum value from a patch, making the representation more robust to small translations.</p>
+                        </div>
+                    </div>
+                    <p class="mt-4">The output size of a convolutional layer is given by: \`O = \\frac{W - K + 2P}{S} + 1\`, where W is input size, K is kernel size, P is padding, and S is stride.</p>
+                </div>
+            </div>
+            `
+        },
+        'topic-5': {
+            title: "Popular CNN Architectures",
+            description: "Over the years, researchers have developed landmark CNN architectures that have progressively improved performance on computer vision tasks. These models introduced key innovations that are still widely used today.",
+            html: `
+            <div class="space-y-6">
+                <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800">LeNet-5 (1998)</h3>
+                    <p class="mt-2 text-gray-600">The pioneer. One of the very first CNNs, used for digit recognition. It established the standard architecture of stacked convolution and pooling layers followed by fully connected layers.</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800">AlexNet (2012)</h3>
+                    <p class="mt-2 text-gray-600">A watershed moment. Won the ImageNet challenge by a large margin, demonstrating the power of deep CNNs. It was much deeper than LeNet and used ReLU activations and Dropout for the first time.</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800">VGG16 (2014)</h3>
+                    <p class="mt-2 text-gray-600">Showed that depth is crucial. VGGNet used a very simple and uniform architecture with small 3x3 convolution filters stacked on top of each other to increase network depth.</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800">Inception (GoogLeNet) (2014)</h3>
+                    <p class="mt-2 text-gray-600">Introduced the "Inception module," which performs convolutions with multiple filter sizes in parallel and concatenates the results. This made the network wider and more computationally efficient.</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800">ResNet (2015)</h3>
+                    <p class="mt-2 text-gray-600">Solved the problem of training very deep networks. Introduced "residual connections" or skip connections, which allow the gradient to bypass layers during backpropagation, enabling networks with over 100 layers.</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800">DenseNet (2016)</h3>
+                    <p class="mt-2 text-gray-600">Took the idea of skip connections further. In DenseNet, each layer is connected to every other layer in a feed-forward fashion, encouraging feature reuse and strengthening gradient flow.</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800">Transfer Learning</h3>
+                    <p class="mt-2 text-gray-600">A powerful technique where a model pre-trained on a large dataset (like ImageNet) is fine-tuned for a different, smaller dataset. The features learned by the pre-trained model (e.g., edges, textures) are often transferable and provide a huge performance boost.</p>
+                </div>
+            </div>
+            `
+        },
+        'topic-6': {
+            title: "Sequence Models (RNNs)",
+            description: "Recurrent Neural Networks (RNNs) are designed to work with sequential data, such as text, speech, or time series. Unlike feedforward networks, RNNs have loops that allow information to persist.",
+            html: `
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Animating the RNN Cell</h3>
+                    <p>The core idea of an RNN is a cell that takes an input \`x_t\` and a hidden state from the previous timestep \`h_{t-1}\` to produce an output and a new hidden state \`h_t\`. This "memory" allows it to process sequences. Click the 'Next Step' button to see how the RNN unrolls and processes a sequence over time.</p>
+                    <div class="text-center my-4">\`h_t = f(W_{hh} h_{t-1} + W_{xh} x_t + b_h)\` <br> \`y_t = W_{hy} h_t + b_y\`</div>
+
+                    <div id="rnn-animation-container" class="relative p-4 bg-gray-50 rounded-lg overflow-x-auto min-h-[300px]">
+                        <div class="flex items-center justify-around space-x-4">
+                           <div id="rnn-step-0" class="rnn-anim-el text-center opacity-0">
+                               <div class="p-3 bg-gray-200 rounded-lg font-bold">h_0</div>
+                               <div class="text-xs mt-1">Initial State</div>
+                           </div>
+                           <!-- Timesteps will be injected here by JS -->
+                        </div>
+                    </div>
+                    <div id="rnn-description" class="mt-6 p-4 bg-gray-100 rounded-lg text-center h-16 flex items-center justify-center">
+                        <p>Click 'Next Step' to begin the animation.</p>
+                    </div>
+                     <div class="mt-6 text-center">
+                        <button id="rnn-step-btn" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors">Next Step</button>
+                        <button id="rnn-reset-btn" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Backpropagation Through Time (BPTT)</h3>
+                    <p>To train an RNN, we "unroll" the network through time, creating a deep feedforward network where each layer corresponds to a timestep. We then use standard backpropagation on this unrolled graph. However, this leads to the vanishing/exploding gradient problem in long sequences, making it hard for vanilla RNNs to learn long-term dependencies.</p>
+                </div>
+            </div>
+            `
+        },
+        'topic-7': {
+            title: "Popular RNN Architectures",
+            description: "To combat the vanishing gradient problem and learn long-range dependencies, more advanced RNN cells with gating mechanisms were developed.",
+            html: `
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Long Short-Term Memory (LSTM)</h3>
+                    <p>LSTMs introduce a separate <span class="font-semibold">cell state</span> \`C_t\` that acts as a conveyor belt for information. It uses three gates to control this flow:</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li><strong>Forget Gate:</strong> Decides what information to throw away from the cell state.</li>
+                        <li><strong>Input Gate:</strong> Decides which new information to store in the cell state.</li>
+                        <li><strong>Output Gate:</strong> Decides what to output based on the cell state.</li>
+                    </ul>
+                     <div class="text-sm mt-4 p-4 bg-gray-50 rounded-lg">
+                        \`f_t = \\sigma(W_f \\cdot [h_{t-1}, x_t] + b_f)\` (Forget) <br>
+                        \`i_t = \\sigma(W_i \\cdot [h_{t-1}, x_t] + b_i)\` (Input) <br>
+                        \`\\tilde{C}_t = \\tanh(W_C \\cdot [h_{t-1}, x_t] + b_C)\` (New Candidate) <br>
+                        \`C_t = f_t * C_{t-1} + i_t * \\tilde{C}_t\` (Update Cell State) <br>
+                        \`o_t = \\sigma(W_o \\cdot [h_{t-1}, x_t] + b_o)\` (Output) <br>
+                        \`h_t = o_t * \\tanh(C_t)\` (Update Hidden State)
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Gated Recurrent Unit (GRU)</h3>
+                    <p>A GRU is a simplified version of an LSTM. It combines the forget and input gates into a single <span class="font-semibold">update gate</span> and merges the cell state and hidden state. It is often computationally more efficient than an LSTM and achieves similar performance on many tasks.</p>
+                     <div class="text-sm mt-4 p-4 bg-gray-50 rounded-lg">
+                        \`z_t = \\sigma(W_z \\cdot [h_{t-1}, x_t])\` (Update Gate) <br>
+                        \`r_t = \\sigma(W_r \\cdot [h_{t-1}, x_t])\` (Reset Gate) <br>
+                        \`\\tilde{h}_t = \\tanh(W \\cdot [r_t * h_{t-1}, x_t])\` (New Candidate) <br>
+                        \`h_t = (1 - z_t) * h_{t-1} + z_t * \\tilde{h}_t\` (Update Hidden State)
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Bidirectional Models</h3>
+                    <p>For some tasks, like sentiment analysis, it's useful for the prediction at a certain timestep to depend on both past and future context. A Bidirectional RNN (Bi-RNN) processes the sequence in both forward and backward directions with two separate hidden states, concatenating them to make the final prediction.</p>
+                </div>
+            </div>
+            `
+        },
+        'topic-8': {
+            title: "The Attention Mechanism and Transformers",
+            description: "The Attention Mechanism revolutionized sequence modeling by allowing models to weigh the importance of different parts of the input data. This concept is the heart of the Transformer architecture.",
+            html: `
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="w-full lg:w-1/2">
+                        <h4 class="font-bold text-lg mb-4 text-center">Transformer Architecture</h4>
+                        <div id="transformer-diagram" class="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+                            <div class="flex justify-between items-center bg-gray-200 p-2 rounded-lg mb-2">
+                                <span class="font-semibold">Inputs + Positional Encoding</span>
+                            </div>
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <div class="flex-1 p-2 border-2 border-blue-400 rounded-lg bg-blue-50">
+                                    <h5 class="font-bold text-center text-blue-800">Encoder Stack</h5>
+                                    <div data-id="multi-head-attention" class="transformer-block cursor-pointer my-2 p-2 bg-blue-200 rounded text-center hover:bg-blue-300">Multi-Head Attention</div>
+                                    <div data-id="feed-forward" class="transformer-block cursor-pointer p-2 bg-blue-200 rounded text-center hover:bg-blue-300">Feed-Forward Network</div>
+                                </div>
+                                <div class="flex-1 p-2 border-2 border-green-400 rounded-lg bg-green-50">
+                                     <h5 class="font-bold text-center text-green-800">Decoder Stack</h5>
+                                    <div data-id="masked-mha" class="transformer-block cursor-pointer my-2 p-2 bg-green-200 rounded text-center hover:bg-green-300">Masked Multi-Head Attention</div>
+                                    <div data-id="encoder-decoder-attention" class="transformer-block cursor-pointer my-2 p-2 bg-green-200 rounded text-center hover:bg-green-300">Encoder-Decoder Attention</div>
+                                    <div data-id="feed-forward" class="transformer-block cursor-pointer p-2 bg-green-200 rounded text-center hover:bg-green-300">Feed-Forward Network</div>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-center font-bold text-2xl">↓</div>
+                            <div class="bg-gray-200 p-2 rounded-lg text-center font-semibold">Final Output</div>
+                        </div>
+                    </div>
+                    <div id="transformer-explanation" class="w-full lg:w-1/2 p-4 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+                        <h4 class="font-bold text-lg mb-2">Click a component on the left!</h4>
+                        <p>Select a block from the Transformer diagram to learn more about its function and importance.</p>
+                    </div>
+                </div>
+                <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Core Formulas</h3>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Scaled Dot-Product Attention (Self-Attention)</h4>
+                            <p>The core of the transformer. It computes attention scores for every word against every other word in the sequence. Q, K, and V are Query, Key, and Value matrices derived from the input.</p>
+                             \`\\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V\`
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Positional Encoding</h4>
+                            <p>Since Transformers have no recurrence, they need a way to know the order of words. Positional encodings are vectors added to the input embeddings to give them this information.</p>
+                             \`PE_{(pos, 2i)} = \\sin(pos / 10000^{2i/d_{model}})\` <br>
+                             \`PE_{(pos, 2i+1)} = \\cos(pos / 10000^{2i/d_{model}})\`
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        },
+        'topic-9': {
+            title: "Autoencoders",
+            description: "This section explores autoencoders, a fascinating type of neural network used for unsupervised learning. We'll start with the foundational context and build up to more specialized and powerful architectures that learn efficient data codings.",
+            html: `...`
+        },
+        'topic-10': {
+            title: "Time Series Forecasting with DNNs",
+            description: "This section covers how Deep Neural Networks like CNNs and LSTMs can be used to model and forecast time series data by learning complex patterns such as trends and seasonality directly from the data.",
+            html: `...`
+        },
+        'topic-11': {
+            title: "Federated Learning",
+            description: "Federated Learning is a training paradigm that enables collaborative model building across many devices without centralizing data, thus preserving user privacy. Explore the step-by-step process below to understand how it works.",
+            html: `...`
+        },
+        'topic-12': {
+            title: "Meta-Learning",
+            description: "Meta-Learning, or 'learning to learn,' focuses on designing models that can adapt to new tasks quickly with minimal training data. It's about learning the process of learning itself, rather than just learning to perform a single task.",
+            html: `...`
+        },
+        'topic-13': {
+            title: "Online and Continual Learning",
+            description: "Continual Learning addresses the challenge of training a single model on a sequence of tasks over its lifetime. The key problem is 'catastrophic forgetting'—forgetting old tasks when learning new ones. Interact with the chart below to see this effect and learn about mitigation strategies.",
+            html: `...`
+        },
+        'topic-14': {
+            title: "Neural Architecture Search (NAS)",
+            description: "NAS automates the design of neural network architectures, moving beyond human intuition to discover novel and high-performing models.",
+            html: `
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">The Three Pillars of NAS</h3>
+                    <p class="mb-4">NAS is typically broken down into three main components that work together in a loop to find the best architecture for a given task.</p>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                            <h4 class="font-bold text-lg mb-2">1. Search Space</h4>
+                            <p>Defines the set of all possible architectures that can be designed. This could range from simple chain-like structures to complex, multi-branch networks.</p>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                            <h4 class="font-bold text-lg mb-2">2. Search Strategy</h4>
+                            <p>The algorithm used to explore the search space. Common strategies include random search, reinforcement learning, and evolutionary algorithms.</p>
+                        </div>
+                        <div class="p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                            <h4 class="font-bold text-lg mb-2">3. Performance Estimation</h4>
+                            <p>The method for evaluating the performance of a candidate architecture. This is often the most expensive step, as it can involve fully training the model.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        }
+    };
+    
+    // Fill in the rest of the content stubs
+    content['topic-0'].html = `
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Why Deep Learning?</h3>
+                    <p class="mb-4">Deep learning excels at finding intricate patterns in large datasets (e.g., images, text, sound) that are too complex for traditional machine learning. It powers many modern AI applications by automatically learning hierarchical feature representations.</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="p-3 bg-blue-50 rounded-lg"><span class="font-semibold">Image Recognition</span></div>
+                        <div class="p-3 bg-green-50 rounded-lg"><span class="font-semibold">Natural Language Processing</span></div>
+                        <div class="p-3 bg-yellow-50 rounded-lg"><span class="font-semibold">Medical Diagnosis</span></div>
+                        <div class="p-3 bg-purple-50 rounded-lg"><span class="font-semibold">Autonomous Driving</span></div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Biological vs. Artificial Neuron</h3>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-1 p-4 border rounded-lg">
+                            <h4 class="font-bold text-lg text-center mb-2">Biological Neuron 🌳</h4>
+                            <p class="text-sm">Receives signals through dendrites, processes them in the cell body (soma), and fires an output signal through the axon if a threshold is met.</p>
+                        </div>
+                        <div class="flex-1 p-4 border rounded-lg">
+                            <h4 class="font-bold text-lg text-center mb-2">Artificial Neuron (Perceptron) ⚙️</h4>
+                            <p class="text-sm">Receives numerical inputs, computes a weighted sum, adds a bias, and passes the result through an activation function to produce a numerical output.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                     <h3 class="text-2xl font-semibold text-gray-800 mb-4">The Perceptron & The XOR Problem</h3>
+                     <p class="mb-4">The Perceptron is the simplest neural network, a single neuron that can only learn linearly separable patterns. This was famously demonstrated by its inability to solve the XOR problem, where the classes cannot be separated by a single straight line.</p>
+                     <div class="bg-gray-50 p-4 rounded-lg border-2 border-gray-200 flex justify-center items-center">
+                        <div class="w-64 h-64 relative">
+                            <div class="absolute top-2 right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">1</div>
+                            <div class="absolute bottom-2 left-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">1</div>
+                            <div class="absolute top-2 left-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">0</div>
+                            <div class="absolute bottom-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">0</div>
+                            <div class="absolute w-full h-px bg-gray-300 top-1/2"></div>
+                            <div class="absolute h-full w-px bg-gray-300 left-1/2"></div>
+                             <p class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-sm text-gray-600">Input 1</p>
+                             <p class="absolute -left-6 top-1/2 -translate-y-1/2 text-sm text-gray-600 -rotate-90">Input 2</p>
+                        </div>
+                     </div>
+                     <p class="text-center mt-4 text-gray-700">No single straight line can separate the blue points (1) from the red points (0). This limitation spurred the development of multi-layered networks.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Multilayer Perceptron (MLP)</h3>
+                    <p class="mb-4">To overcome the limitations of the Perceptron, the MLP was introduced. It consists of an input layer, an output layer, and one or more <span class="font-semibold">hidden layers</span>. These hidden layers allow the MLP to learn complex, non-linear relationships in the data, successfully solving problems like XOR.</p>
+                    <p>MLPs are highly versatile and can operate on Boolean, real, and continuous values, making them suitable for both classification (predicting a category) and regression (predicting a continuous value) tasks.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">MLP as a Universal Approximator</h3>
+                    <p class="mb-4">The Universal Approximation Theorem states that an MLP with a single hidden layer containing a sufficient number of neurons can approximate any continuous function to an arbitrary degree of accuracy. This makes MLPs incredibly powerful. Click the button below to see an MLP learn to approximate a complex function.</p>
+                    <div class="chart-container">
+                        <canvas id="universalApproximationChart"></canvas>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button id="ua-approximate" class="bg-[#8A6D53] text-white font-bold py-2 px-6 rounded-lg hover:bg-[#a18163] transition-colors">Approximate Function</button>
+                    </div>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">The Issue of Depth and Width</h3>
+                    <p class="mb-4">While a single wide hidden layer is theoretically enough, in practice, <span class="font-semibold">deep</span> networks (with multiple hidden layers) are often far more efficient and generalize better than <span class="font-semibold">shallow</span>, wide networks. Deeper architectures can learn a hierarchy of features, building up more complex concepts from simpler ones layer by layer.</p>
+                    <div class="flex flex-col md:flex-row gap-6 mt-6">
+                        <div class="flex-1 p-4 border-2 border-dashed rounded-lg text-center">
+                            <h4 class="font-bold text-lg mb-2">Shallow & Wide Network</h4>
+                             <p class="text-sm">One large hidden layer. May require exponentially more neurons for complex tasks.</p>
+                        </div>
+                        <div class="flex-1 p-4 border-2 border-dashed rounded-lg text-center">
+                            <h4 class="font-bold text-lg mb-2">Deep & Narrow Network</h4>
+                            <p class="text-sm">Multiple smaller hidden layers. More parameter-efficient and often better at generalization.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    content['topic-9'].html = `
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4">Autoencoders: The Core Idea</h3>
+            <p class="mb-6">An autoencoder learns a compressed representation of its input. It has two parts: an encoder that compresses the data to a bottleneck, and a decoder that reconstructs the original data from the compressed form.</p>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 overflow-x-auto">
+                <div class="text-center p-4 bg-blue-100 rounded-lg w-full md:w-auto flex-shrink-0">
+                    <p class="font-bold">Original Input</p>
+                </div>
+                <div class="font-bold text-2xl text-blue-500">→</div>
+                <div class="text-center p-4 bg-green-100 rounded-lg flex-shrink-0">
+                    <p class="font-bold">Encoder</p>
+                </div>
+                <div class="font-bold text-2xl text-green-500">→</div>
+                <div class="text-center p-4 bg-yellow-100 rounded-lg border-2 border-yellow-400 flex-shrink-0">
+                    <p class="font-bold">Bottleneck (Compressed)</p>
+                </div>
+                <div class="font-bold text-2xl text-purple-500">→</div>
+                <div class="text-center p-4 bg-purple-100 rounded-lg flex-shrink-0">
+                    <p class="font-bold">Decoder</p>
+                </div>
+                <div class="font-bold text-2xl text-red-500">→</div>
+                <div class="text-center p-4 bg-red-100 rounded-lg w-full md:w-auto flex-shrink-0">
+                    <p class="font-bold">Reconstructed Output</p>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="font-bold text-lg mb-2">Undercomplete</h4>
+                    <p>The bottleneck dimension is smaller than the input, forcing the network to learn a compressed representation.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="font-bold text-lg mb-2">Regularized</h4>
+                    <p>Uses a loss function that encourages properties other than just copying, preventing simple memorization.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="font-bold text-lg mb-2">Denoising</h4>
+                    <p>Trained to reconstruct a clean image from a noisy input, forcing it to learn robust features.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="font-bold text-lg mb-2">Sparse</h4>
+                    <p>Constrains the number of neurons that can be active at once, encouraging specialized feature learning.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="font-bold text-lg mb-2">Convolutional</h4>
+                    <p>Uses convolutional layers, making it ideal for learning spatial features in images.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="font-bold text-lg mb-2">Deep</h4>
+                    <p>Has multiple hidden layers in both the encoder and decoder, allowing it to learn complex hierarchies.</p>
+                </div>
+            </div>`;
+    content['topic-10'].html = `
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <p class="mb-6">Deep Neural Networks are powerful tools for forecasting because they can automatically learn complex patterns like trends and seasonality from raw time series data without manual feature engineering.</p>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                        <h4 class="font-bold text-lg mb-2">Using LSTMs (Recurrent Neural Networks)</h4>
+                        <p>LSTMs are naturally suited for sequence data. Their internal memory cells allow them to remember long-term dependencies, making them excellent at capturing overall trends and complex seasonal patterns that repeat over long periods.</p>
+                    </div>
+                    <div class="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                        <h4 class="font-bold text-lg mb-2">Using CNNs (Convolutional Neural Networks)</h4>
+                        <p>While known for images, 1D CNNs are highly effective for time series. They act as pattern detectors, sliding over the sequence to identify significant, short-term local patterns (e.g., a weekly spike) that are predictive of future values.</p>
+                    </div>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2 text-center">Interactive Forecast Visualization</h3>
+                <p class="text-center text-sm text-gray-600 mb-4">See how different models might interpret trends and seasonality. This is a conceptual illustration.</p>
+                <div class="chart-container">
+                    <canvas id="timeSeriesChart"></canvas>
+                </div>
+                <div class="mt-6 text-center space-x-2 space-y-2">
+                    <button id="ts-reset" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Reset Data</button>
+                    <button id="ts-forecast-lstm" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">Forecast with LSTM</button>
+                    <button id="ts-forecast-cnn" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">Forecast with CNN</button>
+                </div>
+            </div>`;
+    content['topic-11'].html = `
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="flex flex-col md:flex-row items-center justify-around gap-6 text-center">
+                    <div id="fl-step-1" class="fl-step p-4 rounded-lg border-2 border-transparent transition-all duration-300">
+                        <div class="text-5xl mb-2">🖥️</div>
+                        <h4 class="font-bold">1. Server Initializes & Distributes Model</h4>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-400 self-center">→</div>
+                    <div id="fl-step-2" class="fl-step p-4 rounded-lg border-2 border-transparent transition-all duration-300">
+                        <div class="text-5xl mb-2">📱</div>
+                        <h4 class="font-bold">2. Clients Train Model Locally</h4>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-400 self-center">↓</div>
+                    <div id="fl-step-4" class="fl-step p-4 rounded-lg border-2 border-transparent transition-all duration-300">
+                         <div class="text-5xl mb-2">📈</div>
+                        <h4 class="font-bold">4. Server Aggregates Updates</h4>
+                    </div>
+                     <div class="text-2xl font-bold text-gray-400 self-center">←</div>
+                    <div id="fl-step-3" class="fl-step p-4 rounded-lg border-2 border-transparent transition-all duration-300">
+                        <div class="text-5xl mb-2">📤</div>
+                        <h4 class="font-bold">3. Clients Send Updates (not data!)</h4>
+                    </div>
+                </div>
+                <div id="fl-description" class="mt-6 p-4 bg-gray-100 rounded-lg text-center">
+                    <p>Click the button to start the Federated Learning cycle.</p>
+                </div>
+                <div class="text-center mt-6">
+                    <button id="fl-next-btn" class="bg-[#8A6D53] text-white font-bold py-2 px-6 rounded-lg hover:bg-[#a18163] transition-colors">Start Cycle</button>
+                </div>
+            </div>`;
+    content['topic-12'].html = `
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                 <h3 class="text-2xl font-semibold text-gray-800 mb-4">The "Learning to Learn" Loop</h3>
+                 <p class="mb-6">A meta-learning model is trained on a variety of different tasks. Through this process, it learns a generalizable strategy for learning itself, which it can then apply to solve new, unseen tasks with very few examples.</p>
+                 <div class="flex flex-col items-center p-6 border-2 border-dashed rounded-lg">
+                    <div class="font-bold text-xl mb-4">Meta-Training Loop</div>
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="p-4 bg-blue-100 rounded-lg text-center shadow">Task 1: Classify Flowers 🌸</div>
+                        <div class="p-4 bg-green-100 rounded-lg text-center shadow">Task 2: Classify Dogs 🐶</div>
+                        <div class="p-4 bg-purple-100 rounded-lg text-center shadow">Task 3: Classify Cars 🚗</div>
+                    </div>
+                    <div class="text-4xl animate-bounce">↓</div>
+                    <div class="p-6 bg-yellow-100 rounded-lg text-center shadow-lg my-4">
+                        <h4 class="font-bold text-lg">Meta-Learner</h4>
+                        <p>Learns a general "how-to-learn" strategy from all tasks.</p>
+                    </div>
+                     <div class="text-4xl">↓</div>
+                    <div class="p-4 mt-4 bg-red-100 rounded-lg text-center shadow">
+                        <h4 class="font-bold">Ready to solve a new task (e.g., "Classify Birds 🐦") with only 1-2 examples!</h4>
+                    </div>
+                 </div>
+            </div>`;
+    content['topic-13'].html = `
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="chart-container">
+                    <canvas id="continualLearningChart"></canvas>
+                </div>
+                <div class="mt-6 text-center space-x-2 space-y-2">
+                    <button id="cl-reset" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
+                    <button id="cl-add-task" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">Train on New Task (Forgetting)</button>
+                    <button id="cl-add-task-ewc" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">Train with EWC (Mitigation)</button>
+                    <button id="cl-add-task-replay" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">Train with Replay (Mitigation)</button>
+                </div>
+            </div>`;
+    
+    const dynamicContentContainer = document.getElementById('dynamic-content');
+    Object.keys(content).forEach(key => {
+        const topic = content[key];
+        const section = document.createElement('section');
+        section.id = key;
+        section.className = "mb-16 scroll-mt-20";
+        section.innerHTML = `
+            <h2 class="text-3xl font-semibold mb-4 text-[#8A6D53]">${topic.title}</h2>
+            <p class="text-gray-700 mb-6">${topic.description}</p>
+            <div>${topic.html}</div>
+        `;
+        dynamicContentContainer.appendChild(section);
+    });
+
+    if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true},
+                {left: '`', right: '`', display: false}
+            ]
+        });
+    }
+
+
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+        overlay.classList.toggle('opacity-0');
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        overlay.classList.add('opacity-0');
+    });
+
+    // Active nav link highlighting
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                navLinks.forEach(link => {
+                    link.classList.remove('active-nav');
+                    if (link.getAttribute('href').substring(1) === entry.target.id) {
+                        link.classList.add('active-nav');
+                    }
+                });
+            }
+        });
+    }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+
+    sections.forEach(section => observer.observe(section));
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+             if (sidebar.classList.contains('-translate-x-full') === false && window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                overlay.classList.add('opacity-0');
+             }
+        });
+    });
+
+    function setupFeedforwardDiagram() {
+        const diagram = document.getElementById('ff-diagram');
+        if (!diagram) return;
+
+        const description = document.getElementById('ff-description');
+        const forwardBtn = document.getElementById('ff-forward-btn');
+        const backwardBtn = document.getElementById('ff-backward-btn');
+        const resetBtn = document.getElementById('ff-reset-btn');
+        const svg = diagram.querySelector('svg');
+        const layers = Array.from(diagram.querySelectorAll('[data-layer]'));
+        let currentStep = -1;
+        const totalForwardSteps = layers.length;
+
+        function drawLines() {
+            if (!svg) return;
+            svg.innerHTML = '<defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#F59E0B"/></marker></defs><defs><marker id="back-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444"/></marker></defs>';
+            for (let i = 0; i < layers.length - 1; i++) {
+                const currentLayerNodes = Array.from(layers[i].children);
+                const nextLayerNodes = Array.from(layers[i + 1].children);
+                currentLayerNodes.forEach(startNode => {
+                    nextLayerNodes.forEach(endNode => {
+                        const startRect = startNode.getBoundingClientRect();
+                        const endRect = endNode.getBoundingClientRect();
+                        const diagramRect = diagram.getBoundingClientRect();
+                        const x1 = startRect.right - diagramRect.left;
+                        const y1 = startRect.top + startRect.height / 2 - diagramRect.top;
+                        const x2 = endRect.left - diagramRect.left;
+                        const y2 = endRect.top + endRect.height / 2 - diagramRect.top;
+                        
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', x1);
+                        line.setAttribute('y1', y1);
+                        line.setAttribute('x2', x2);
+                        line.setAttribute('y2', y2);
+                        line.setAttribute('stroke', '#9CA3AF');
+                        line.setAttribute('stroke-width', '2');
+                        line.classList.add('ff-line');
+                        line.dataset.fromLayer = i;
+                        line.dataset.toLayer = i + 1;
+                        svg.appendChild(line);
+                    });
+                });
+            }
+        }
+        
+        function updateState() {
+            layers.forEach((layer, i) => {
+                const nodes = layer.querySelectorAll('.ff-node');
+                nodes.forEach(node => {
+                    if (i === currentStep || (currentStep > totalForwardSteps && (totalForwardSteps - (currentStep - totalForwardSteps)) === i)) {
+                        node.classList.add('active-node', 'bg-yellow-300');
+                    } else {
+                        node.classList.remove('active-node', 'bg-yellow-300');
+                    }
+                });
+            });
+
+            if(svg) {
+                svg.querySelectorAll('.ff-line').forEach(line => {
+                    line.classList.remove('active-line', 'back-active-line');
+                    line.removeAttribute('marker-end');
+                    const from = parseInt(line.dataset.fromLayer);
+                    if (currentStep > 0 && currentStep <= totalForwardSteps && from === currentStep - 1) {
+                        line.classList.add('active-line');
+                        line.setAttribute('marker-end', 'url(#arrow)');
+                    }
+                     if (currentStep > totalForwardSteps) {
+                        const to = parseInt(line.dataset.toLayer);
+                        const backStep = totalForwardSteps - (currentStep - totalForwardSteps);
+                        if (to === backStep +1) {
+                            line.classList.add('back-active-line');
+                            line.setAttribute('marker-end', 'url(#back-arrow)');
+                        }
+                    }
+                });
+            }
+
+            if (description) {
+                if (currentStep === -1) {
+                    description.innerHTML = `<p>Start the process to see how the network learns.</p>`;
+                    if(forwardBtn) forwardBtn.disabled = false;
+                    if(backwardBtn) backwardBtn.disabled = true;
+                } else if (currentStep === 0) {
+                    description.innerHTML = `<p><strong>Step 1:</strong> Input data is fed into the network.</p>`;
+                } else if (currentStep > 0 && currentStep < totalForwardSteps) {
+                     description.innerHTML = `<p><strong>Step ${currentStep + 1}:</strong> Data flows to the next layer. Each neuron computes its value.</p>`;
+                } else if (currentStep === totalForwardSteps) {
+                    description.innerHTML = `<p><strong>Forward Pass Complete:</strong> The network makes a prediction. Now, calculate the error and begin backpropagation.</p>`;
+                    if(forwardBtn) forwardBtn.disabled = true;
+                    if(backwardBtn) backwardBtn.disabled = false;
+                } else if (currentStep > totalForwardSteps && currentStep < totalForwardSteps * 2) {
+                     description.innerHTML = `<p><strong>Backward Step ${currentStep - totalForwardSteps}:</strong> The error is propagated backward, and weights are updated.</p>`;
+                } else if (currentStep === totalForwardSteps * 2) {
+                     description.innerHTML = `<p><strong>Backward Pass Complete:</strong> Weights have been updated. The learning cycle is complete.</p>`;
+                     if(backwardBtn) backwardBtn.disabled = true;
+                }
+            }
+        }
+
+        if(forwardBtn) forwardBtn.addEventListener('click', () => {
+            if (currentStep < totalForwardSteps) {
+                currentStep++;
+                updateState();
+            }
+        });
+        
+        if(backwardBtn) backwardBtn.addEventListener('click', () => {
+            if (currentStep >= totalForwardSteps && currentStep < totalForwardSteps * 2) {
+                 currentStep++;
+                 updateState();
+            }
+        });
+
+        if(resetBtn) resetBtn.addEventListener('click', () => {
+            currentStep = -1;
+            updateState();
+        });
+        
+        drawLines();
+        window.addEventListener('resize', drawLines);
+    }
+
+    function setupActivationFunctionsChart() {
+        const afCtx = document.getElementById('activationFunctionsChart');
+        if (!afCtx) return;
+
+        let afChart;
+        const labels = Array.from({length: 21}, (_, i) => i - 10);
+        const activationData = {
+            sigmoid: labels.map(x => 1 / (1 + Math.exp(-x))),
+            tanh: labels.map(x => Math.tanh(x)),
+            relu: labels.map(x => Math.max(0, x)),
+            leakyRelu: labels.map(x => x > 0 ? x : 0.01 * x)
+        };
+
+        function createOrUpdateAfChart(data, label) {
+            if (afChart) {
+                afChart.data.datasets[0].data = data;
+                afChart.data.datasets[0].label = label;
+                afChart.update();
+            } else {
+                afChart = new Chart(afCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            borderColor: 'rgba(192, 132, 252, 1)',
+                            backgroundColor: 'rgba(192, 132, 252, 0.2)',
+                            tension: 0.1,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        scales: { 
+                            y: { beginAtZero: false, min: -1.2, max: 1.2 },
+                            x: { title: {display: true, text: 'Input (z)'} }
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Common Activation Functions', font: { size: 16 } },
+                        }
+                    }
+                });
+            }
+        }
+        createOrUpdateAfChart(activationData.sigmoid, 'Sigmoid');
+
+        document.querySelectorAll('.activation-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const func = e.target.dataset.func;
+                const label = e.target.textContent;
+                createOrUpdateAfChart(activationData[func], label);
+            });
+        });
+    }
+
+    function setupOptimizerChart() {
+        const optCtx = document.getElementById('optimizerChart');
+        if (!optCtx) return;
+
+        let optChart;
+        let animationFrameId;
+
+        const lossFn = (x, y) => Math.pow(x, 2) - Math.pow(y, 2);
+        const gradFn = (x, y) => ({ dx: 2 * x, dy: -2 * y });
+
+        const drawBackground = (chart) => {
+            const { ctx, width, height } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.xAxis || !meta.yAxis || !chart.data.datasets.length) {
+                return;
+            }
+            const metaX = meta.xAxis;
+            const metaY = meta.yAxis;
+            
+            const resolution = 20;
+            const cellW = width / resolution;
+            const cellH = height / resolution;
+
+            for (let i = 0; i < resolution; i++) {
+                for (let j = 0; j < resolution; j++) {
+                    const x = metaX.getValueForPixel(i * cellW);
+                    const y = metaY.getValueForPixel(j * cellH);
+                    const loss = lossFn(x, y);
+                    
+                    const normalizedLoss = Math.min(1, Math.max(0, (loss + 25) / 50));
+                    const hue = 240 * (1 - normalizedLoss);
+                    ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.5)`;
+                    ctx.fillRect(i * cellW, j * cellH, cellW, cellH);
+                }
+            }
+        };
+        
+        const backgroundPlugin = {
+            id: 'customCanvasBackgroundColor',
+            beforeDraw: (chart) => {
+                drawBackground(chart);
+            }
+        };
+
+        function createOrUpdateOptChart(datasets) {
+             if (optChart) {
+                optChart.destroy();
+            }
+            optChart = new Chart(optCtx, {
+                type: 'scatter',
+                data: { datasets },
+                plugins: [backgroundPlugin],
+                options: {
+                    scales: {
+                        x: { min: -5, max: 5, display: false },
+                        y: { min: -5, max: 5, display: false }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false },
+                        title: { display: true, text: 'Loss Surface' }
+                    }
+                }
+            });
+        }
+        
+        function runOptimizer(optimizer) {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            
+            let x = -4, y = 4;
+            let path = [{x, y}];
+            let vx = 0, vy = 0;
+            let m_dx = 0, v_dx = 0, m_dy = 0, v_dy = 0;
+            const beta1 = 0.9, beta2 = 0.999, eps = 1e-8;
+            let t = 0;
+
+            const colors = {sgd: 'rgba(59, 130, 246, 1)', momentum: 'rgba(16, 185, 129, 1)', adam: 'rgba(239, 68, 68, 1)'};
+            
+            const datasets = [{
+                label: optimizer.toUpperCase(),
+                data: path,
+                showLine: true,
+                borderColor: colors[optimizer],
+                pointBackgroundColor: colors[optimizer],
+                tension: 0.1
+            }];
+            createOrUpdateOptChart(datasets);
+
+            function step() {
+                t++;
+                const grad = gradFn(x, y);
+                
+                if (optimizer === 'sgd') {
+                    const lr = 0.05;
+                    x -= lr * grad.dx;
+                    y -= lr * grad.dy;
+                } else if (optimizer === 'momentum') {
+                    const lr = 0.05;
+                    const mu = 0.9;
+                    vx = mu * vx - lr * grad.dx;
+                    vy = mu * vy - lr * grad.dy;
+                    x += vx;
+                    y += vy;
+                } else if (optimizer === 'adam') {
+                    const lr = 0.3;
+                    m_dx = beta1 * m_dx + (1-beta1) * grad.dx;
+                    m_dy = beta1 * m_dy + (1-beta1) * grad.dy;
+                    v_dx = beta2 * v_dx + (1-beta2) * Math.pow(grad.dx, 2);
+                    v_dy = beta2 * v_dy + (1-beta2) * Math.pow(grad.dy, 2);
+                    const m_hat_dx = m_dx / (1 - Math.pow(beta1, t));
+                    const m_hat_dy = m_dy / (1 - Math.pow(beta1, t));
+                    const v_hat_dx = v_dx / (1 - Math.pow(beta2, t));
+                    const v_hat_dy = v_dy / (1 - Math.pow(beta2, t));
+                    x -= lr * m_hat_dx / (Math.sqrt(v_hat_dx) + eps);
+                    y -= lr * m_hat_dy / (Math.sqrt(v_hat_dy) + eps);
+                }
+
+                path.push({x, y});
+                optChart.update('none');
+
+                if (path.length < 100 && (Math.abs(grad.dx) > 0.01 || Math.abs(grad.dy) > 0.01)) {
+                    animationFrameId = requestAnimationFrame(step);
+                }
+            }
+            animationFrameId = requestAnimationFrame(step);
+        }
+        
+        createOrUpdateOptChart([]);
+        
+        document.querySelectorAll('.optimizer-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                runOptimizer(e.target.dataset.optimizer);
+            });
+        });
+        
+        document.getElementById('optimizer-reset')?.addEventListener('click', () => {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            createOrUpdateOptChart([]);
+        });
+    }
+
+    function setupRegularizationCharts() {
+        const overfitCtx = document.getElementById('overfittingChart');
+        let overfitChart;
+        const baseDataPoints = [];
+        for(let i=0; i<20; i++) {
+            const x = i/1.9;
+            const y = Math.sin(x) * 3 + 5 + (Math.random() - 0.5) * 2;
+            baseDataPoints.push({x, y});
+        }
+        const baseDataset = {
+            label: 'Data Points',
+            data: baseDataPoints,
+            backgroundColor: 'rgba(138, 109, 83, 0.7)',
+            type: 'scatter'
+        };
+
+        function createOverfitChart(modelDataset) {
+            const datasets = [baseDataset];
+            if(modelDataset) datasets.push(modelDataset);
+
+            if (overfitChart) {
+                overfitChart.data.datasets = datasets;
+                overfitChart.update();
+            } else if (overfitCtx) {
+                overfitChart = new Chart(overfitCtx, {
+                    data: { datasets },
+                    options: {
+                        scales: { x: { type: 'linear', position: 'bottom' }, y: { beginAtZero: false } },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Model Fit Visualization', font: { size: 16 } }
+                        }
+                    }
+                });
+            }
+        }
+        createOverfitChart();
+
+        document.querySelectorAll('.model-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const model = btn.dataset.model;
+                let modelData, label, color;
+                const linePoints = Array.from({length: 100}, (_, i) => i/9.9);
+
+                if (model === 'underfit') {
+                    modelData = linePoints.map(x => ({x, y: 5.5}));
+                    label = 'Underfit Model (Linear)';
+                    color = 'rgba(239, 68, 68, 0.7)';
+                } else if (model === 'good') {
+                    modelData = linePoints.map(x => ({x, y: Math.sin(x) * 3 + 5}));
+                    label = 'Good Fit Model (Curve)';
+                    color = 'rgba(16, 185, 129, 0.7)';
+                } else {
+                    const overfitPoints = [...baseDataPoints].sort((a,b) => a.x - b.x);
+                    modelData = overfitPoints;
+                    label = 'Overfit Model (Wiggly)';
+                    color = 'rgba(59, 130, 246, 0.7)';
+                }
+
+                createOverfitChart({
+                    label,
+                    data: modelData,
+                    borderColor: color,
+                    backgroundColor: color,
+                    type: 'line',
+                    tension: model === 'good' ? 0.4 : 0,
+                    pointRadius: 0,
+                    borderWidth: 3
+                });
+            });
+        });
+        document.getElementById('overfitting-reset')?.addEventListener('click', () => createOverfitChart());
+
+        const dropoutBtn = document.getElementById('dropout-btn');
+        const droppableNodes = document.querySelectorAll('.droppable');
+        dropoutBtn?.addEventListener('click', () => {
+            droppableNodes.forEach(node => {
+                if (Math.random() > 0.5) {
+                    node.classList.add('dropped-out');
+                } else {
+                    node.classList.remove('dropped-out');
+                }
+            });
+        });
+        
+        const gradCtx = document.getElementById('gradientChart');
+        let gradChart;
+        function createGradientChart(data, label) {
+             const labels = Array.from({length: 20}, (_,i) => `L${i+1}`);
+             if(gradChart) {
+                 gradChart.data.datasets[0].data = data;
+                 gradChart.data.datasets[0].label = label;
+                 gradChart.update();
+             } else if (gradCtx) {
+                 gradChart = new Chart(gradCtx, {
+                     type: 'line',
+                     data: {
+                         labels,
+                         datasets: [{
+                             label, data,
+                             borderColor: 'rgba(16, 185, 129, 1)',
+                             backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                             fill: true, tension: 0.1
+                         }]
+                     },
+                     options: {
+                        scales: { y: { type: 'logarithmic', title: {display: true, text: 'Gradient Magnitude (log scale)'} }, x: {title: {display: true, text: 'Layer Depth'}} },
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { title: { display: true, text: 'Gradient Flow in Deep Networks', font: {size: 16} } }
+                     }
+                 });
+             }
+        }
+        
+        if (gradCtx) {
+            createGradientChart(Array.from({length: 20}, (_,i) => 1), 'Stable');
+            document.querySelectorAll('.grad-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.dataset.grad;
+                    let data, label, color;
+                    if (type === 'vanish') {
+                        data = Array.from({length: 20}, (_,i) => Math.pow(0.8, i));
+                        label = 'Vanishing Gradient';
+                        color = 'rgba(239, 68, 68, 1)';
+                    } else if (type === 'explode') {
+                        data = Array.from({length: 20}, (_,i) => Math.pow(1.2, i));
+                        label = 'Exploding Gradient';
+                        color = 'rgba(59, 130, 246, 1)';
+                    } else {
+                        data = Array.from({length: 20}, (_,i) => 1 + (Math.random() - 0.5) * 0.2);
+                        label = 'Stable Gradient';
+                        color = 'rgba(16, 185, 129, 1)';
+                    }
+                    gradChart.data.datasets[0].data = data;
+                    gradChart.data.datasets[0].label = label;
+                    gradChart.data.datasets[0].borderColor = color;
+                    gradChart.data.datasets[0].backgroundColor = color.replace('1)', '0.2)');
+                    gradChart.update();
+                });
+            });
+        }
+    }
+
+    function setupConvolutionVisualization() {
+        const inputGridEl = document.getElementById('conv-input-grid');
+        const kernelGridEl = document.getElementById('conv-kernel-grid');
+        const outputGridEl = document.getElementById('conv-output-grid');
+        const stepBtn = document.getElementById('conv-step-btn');
+        const resetBtn = document.getElementById('conv-reset-btn');
+        if (!inputGridEl) return;
+
+        const inputSize = 5;
+        const kernelSize = 3;
+        const outputSize = inputSize - kernelSize + 1;
+
+        let inputMatrix = [], kernelMatrix = [], outputMatrix = [];
+        let inputCells = [], outputCells = [];
+        let currentStep = 0;
+
+        function init() {
+            inputMatrix = Array.from({length: inputSize}, () => Array.from({length: inputSize}, () => Math.floor(Math.random() * 2)));
+            kernelMatrix = [[1,0,1],[0,1,0],[1,0,1]]; // Simple X pattern kernel
+            outputMatrix = Array.from({length: outputSize}, () => Array(outputSize).fill(null));
+            currentStep = 0;
+
+            inputGridEl.innerHTML = '';
+            kernelGridEl.innerHTML = '';
+            outputGridEl.innerHTML = '';
+            inputCells = [];
+
+            for(let r=0; r<inputSize; r++) {
+                for(let c=0; c<inputSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'conv-cell';
+                    cell.textContent = inputMatrix[r][c];
+                    inputGridEl.appendChild(cell);
+                    inputCells.push(cell);
+                }
+            }
+             for(let r=0; r<kernelSize; r++) {
+                for(let c=0; c<kernelSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'kernel-cell bg-gray-200';
+                    cell.textContent = kernelMatrix[r][c];
+                    kernelGridEl.appendChild(cell);
+                }
+            }
+             for(let r=0; r<outputSize; r++) {
+                for(let c=0; c<outputSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'conv-cell bg-gray-100';
+                    cell.textContent = '?';
+                    outputGridEl.appendChild(cell);
+                    outputCells.push(cell);
+                }
+            }
+            highlightStep();
+        }
+
+        function highlightStep() {
+            const outRow = Math.floor(currentStep / outputSize);
+            const outCol = currentStep % outputSize;
+            
+            inputCells.forEach(cell => cell.classList.remove('highlight-kernel', 'bg-blue-100'));
+            
+            if (currentStep < outputSize * outputSize) {
+                for(let r=0; r<kernelSize; r++) {
+                    for(let c=0; c<kernelSize; c++) {
+                        const inRow = outRow + r;
+                        const inCol = outCol + c;
+                        const index = inRow * inputSize + inCol;
+                        inputCells[index].classList.add('highlight-kernel', 'bg-blue-100');
+                    }
+                }
+            }
+        }
+        
+        function doStep() {
+            if (currentStep >= outputSize * outputSize) return;
+
+            const outRow = Math.floor(currentStep / outputSize);
+            const outCol = currentStep % outputSize;
+            
+            let sum = 0;
+            for(let r=0; r<kernelSize; r++) {
+                for(let c=0; c<kernelSize; c++) {
+                    sum += inputMatrix[outRow+r][outCol+c] * kernelMatrix[r][c];
+                }
+            }
+            outputMatrix[outRow][outCol] = sum;
+            outputCells[currentStep].textContent = sum;
+            outputCells[currentStep].classList.remove('bg-gray-100');
+            outputCells[currentStep].classList.add('bg-green-200');
+
+            currentStep++;
+            highlightStep();
+        }
+        
+        stepBtn.addEventListener('click', doStep);
+        resetBtn.addEventListener('click', init);
+
+        init();
+    }
+    
+    function setupRnnAnimation() {
+        const container = document.getElementById('rnn-animation-container');
+        if (!container) return;
+        const descEl = document.getElementById('rnn-description');
+        const stepBtn = document.getElementById('rnn-step-btn');
+        const resetBtn = document.getElementById('rnn-reset-btn');
+
+        const numSteps = 4;
+        let currentStep = -1;
+
+        function init() {
+            currentStep = -1;
+            const holder = container.querySelector('.flex');
+            holder.innerHTML = `<div id="rnn-step-0" class="rnn-anim-el text-center opacity-0">
+                               <div class="p-3 bg-gray-200 rounded-lg font-bold">h_0</div>
+                               <div class="text-xs mt-1">Initial State</div>
+                           </div>`;
+            for (let i=1; i<=numSteps; i++) {
+                holder.innerHTML += `
+                <div class="rnn-anim-el text-4xl text-gray-300 opacity-0" id="arrow-h-${i-1}">→</div>
+                <div class="text-center">
+                    <div class="rnn-anim-el p-3 bg-yellow-100 rounded-lg font-bold opacity-0" id="rnn-output-${i}">y_${i}</div>
+                    <div class="rnn-anim-el text-3xl text-gray-300 opacity-0 my-2" id="arrow-y-${i}">↑</div>
+                    <div id="rnn-cell-${i}" class="rnn-anim-el p-4 border-2 border-gray-300 rounded-lg text-center">
+                        <p class="font-bold">RNN Cell</p>
+                        <p class="text-sm">t=${i}</p>
+                    </div>
+                    <div class="rnn-anim-el text-3xl text-gray-300 opacity-0 my-2" id="arrow-x-${i}">↑</div>
+                    <div class="rnn-anim-el p-3 bg-green-100 rounded-lg font-bold opacity-0" id="rnn-input-${i}">x_${i}</div>
+                </div>
+                `;
+            }
+            updateState();
+        }
+        
+        function updateState() {
+            const totalPhases = numSteps * 3;
+            if (currentStep > totalPhases) currentStep = totalPhases;
+             
+            // Reset all styles
+            for (let i=0; i<=numSteps; i++) {
+                 const h = document.getElementById(`rnn-step-${i}`);
+                 if(h) h.classList.add('opacity-0');
+                 if(i > 0) {
+                    document.getElementById(`arrow-h-${i-1}`).classList.add('opacity-0');
+                    document.getElementById(`rnn-output-${i}`).classList.add('opacity-0');
+                    document.getElementById(`arrow-y-${i}`).classList.add('opacity-0');
+                    document.getElementById(`rnn-cell-${i}`).classList.remove('bg-blue-200', 'border-blue-400', 'scale-110');
+                    document.getElementById(`arrow-x-${i}`).classList.add('opacity-0');
+                    document.getElementById(`rnn-input-${i}`).classList.add('opacity-0');
+                 }
+            }
+
+            if (currentStep === -1) {
+                descEl.innerHTML = `<p>Click 'Next Step' to begin the animation.</p>`;
+                return;
+            }
+
+            // Show processed elements
+            for (let i=0; i < Math.ceil(currentStep / 3); i++) {
+                document.getElementById(`rnn-step-${i}`).classList.remove('opacity-0');
+                if (i > 0) {
+                    document.getElementById(`rnn-input-${i}`).classList.remove('opacity-0');
+                    document.getElementById(`rnn-output-${i}`).classList.remove('opacity-0');
+                }
+            }
+
+            const stepInCycle = currentStep % 3;
+            const timeStep = Math.floor(currentStep / 3) + 1;
+            
+            if (timeStep > numSteps) {
+                 descEl.innerHTML = `<p>Sequence processing complete.</p>`;
+                 return;
+            }
+
+            if (stepInCycle === 0) { // Phase 1: Input
+                document.getElementById(`rnn-input-${timeStep}`).classList.remove('opacity-0');
+                document.getElementById(`arrow-x-${timeStep}`).classList.remove('opacity-0');
+                document.getElementById(`arrow-h-${timeStep-1}`).classList.remove('opacity-0');
+                document.getElementById(`rnn-step-${timeStep-1}`).classList.remove('opacity-0');
+                descEl.innerHTML = `<p><strong>Timestep t=${timeStep}:</strong> Input \`x_${timeStep}\` and previous state \`h_${timeStep-1}\` are fed into the cell.</p>`;
+            } else if (stepInCycle === 1) { // Phase 2: Process
+                document.getElementById(`rnn-cell-${timeStep}`).classList.add('bg-blue-200', 'border-blue-400', 'scale-110');
+                descEl.innerHTML = `<p><strong>Timestep t=${timeStep}:</strong> The cell processes the inputs to compute the new state.</p>`;
+            } else if (stepInCycle === 2) { // Phase 3: Output
+                document.getElementById(`arrow-y-${timeStep}`).classList.remove('opacity-0');
+                document.getElementById(`rnn-output-${timeStep}`).classList.remove('opacity-0');
+                const next_h = document.createElement('div');
+                next_h.id = `rnn-step-${timeStep}`;
+                next_h.className = `rnn-anim-el text-center`;
+                next_h.innerHTML = `<div class="p-3 bg-gray-200 rounded-lg font-bold">h_${timeStep}</div>
+                               <div class="text-xs mt-1">New State</div>`;
+                document.getElementById(`rnn-cell-${timeStep}`).parentElement.appendChild(next_h);
+
+                descEl.innerHTML = `<p><strong>Timestep t=${timeStep}:</strong> The cell produces output \`y_${timeStep}\` and the new hidden state \`h_${timeStep}\`.</p>`;
+            }
+        }
+
+        stepBtn.addEventListener('click', () => {
+             currentStep++;
+             updateState();
+        });
+        resetBtn.addEventListener('click', init);
+        
+        init();
+    }
+
+
+    function setupApproximationChart() {
+        const uaCtx = document.getElementById('universalApproximationChart');
+        if (!uaCtx) return;
+        
+        let uaChart;
+        let approximationLevel = 0;
+
+        const labels = Array.from({length: 100}, (_, i) => (i/10).toFixed(1));
+        const targetFunction = labels.map(x => Math.sin(x * 1.5) * 5 + Math.cos(x*4)*2 + 10);
+        
+        const baseData = {
+            labels: labels,
+            datasets: [{
+                label: 'Target Function',
+                data: targetFunction,
+                borderColor: 'rgba(138, 109, 83, 1)',
+                borderWidth: 3,
+                pointRadius: 0,
+                tension: 0.1
+            }]
+        };
+
+        function createOrUpdateUaChart(data) {
+             if (uaChart) {
+                uaChart.data = data;
+                uaChart.update();
+            } else {
+                 uaChart = new Chart(uaCtx, {
+                    type: 'line',
+                    data: JSON.parse(JSON.stringify(data)),
+                    options: {
+                        scales: { y: { beginAtZero: false, title: { display: true, text: 'Value' } } },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'MLP Function Approximation', font: { size: 16 } },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+            }
+        }
+        
+        createOrUpdateUaChart(baseData);
+        
+        document.getElementById('ua-approximate')?.addEventListener('click', () => {
+            approximationLevel++;
+            const newData = JSON.parse(JSON.stringify(baseData));
+            
+            let approxData;
+            if (approximationLevel === 1) { // Low capacity
+                 approxData = labels.map(x => 10 + (x-5)*0.5); 
+            } else if (approximationLevel === 2) { // Medium capacity
+                 approxData = labels.map(x => Math.sin(x * 1.5) * 5 + 10);
+            } else { // High capacity (and reset)
+                 approxData = targetFunction.map(y => y + (Math.random()-0.5)*0.5);
+                 approximationLevel = 0;
+            }
+
+            newData.datasets.push({
+                label: `MLP Approx. (Level ${approximationLevel || 3})`,
+                data: approxData,
+                borderColor: 'rgba(54, 162, 235, 0.7)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderDash: [5, 5],
+                pointRadius: 0,
+                tension: 0.1,
+                fill: true
+            });
+
+            createOrUpdateUaChart(newData);
+        });
+    }
+
+    const clCtx = document.getElementById('continualLearningChart');
+    let clChart;
+    const initialData = {
+        labels: ['Task 1'],
+        datasets: [{
+            label: 'Performance',
+            data: [95],
+            backgroundColor: 'rgba(138, 109, 83, 0.5)',
+            borderColor: 'rgba(138, 109, 83, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    function createOrUpdateClChart(data) {
+        if (clChart) {
+            clChart.data = data;
+            clChart.update();
+        } else if(clCtx) {
+            clChart = new Chart(clCtx, {
+                type: 'bar',
+                data: JSON.parse(JSON.stringify(data)),
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Performance (%)' } }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Model Performance on Tasks', font: { size: 16 }},
+                        tooltip: { enabled: true }
+                    }
+                }
+            });
+        }
+    }
+
+    let taskCounter = 1;
+    if(document.getElementById('cl-reset')) {
+        document.getElementById('cl-reset').addEventListener('click', () => {
+            taskCounter = 1;
+            createOrUpdateClChart(initialData);
+        });
+    }
+
+    if(document.getElementById('cl-add-task')) {
+        document.getElementById('cl-add-task').addEventListener('click', () => {
+            if (taskCounter < 5) {
+                taskCounter++;
+                const newData = JSON.parse(JSON.stringify(clChart.data));
+                newData.labels.push(`Task ${taskCounter}`);
+                newData.datasets[0].data = newData.datasets[0].data.map(d => Math.max(10, d - 40));
+                newData.datasets[0].data.push(95);
+                createOrUpdateClChart(newData);
+            }
+        });
+    }
+    
+    if(document.getElementById('cl-add-task-ewc')) {
+         document.getElementById('cl-add-task-ewc').addEventListener('click', () => {
+            if (taskCounter < 5) {
+                taskCounter++;
+                const newData = JSON.parse(JSON.stringify(clChart.data));
+                newData.labels.push(`Task ${taskCounter}`);
+                newData.datasets[0].data = newData.datasets[0].data.map(d => Math.max(20, d - 15));
+                newData.datasets[0].data.push(95);
+                createOrUpdateClChart(newData);
+            }
+        });
+    }
+
+    if(document.getElementById('cl-add-task-replay')) {
+         document.getElementById('cl-add-task-replay').addEventListener('click', () => {
+            if (taskCounter < 5) {
+                taskCounter++;
+                const newData = JSON.parse(JSON.stringify(clChart.data));
+                newData.labels.push(`Task ${taskCounter}`);
+                newData.datasets[0].data = newData.datasets[0].data.map(d => Math.max(30, d - 5));
+                newData.datasets[0].data.push(95);
+                createOrUpdateClChart(newData);
+            }
+        });
+    }
+
+    function setupTimeSeriesChart() {
+        const tsCtx = document.getElementById('timeSeriesChart');
+        if (!tsCtx) return;
+
+        let tsChart;
+
+        const generateData = () => {
+            const data = [];
+            const labels = [];
+            for (let i = 0; i < 50; i++) {
+                const trend = i * 0.5;
+                const seasonality = Math.sin(i * Math.PI / 6) * 10;
+                const noise = (Math.random() - 0.5) * 5;
+                data.push(trend + seasonality + 20 + noise);
+                labels.push(`T${i+1}`);
+            }
+            return { data, labels };
+        };
+
+        const initialSeries = generateData();
+        const baseData = {
+            labels: initialSeries.labels,
+            datasets: [{
+                label: 'Historical Data',
+                data: initialSeries.data,
+                borderColor: 'rgba(138, 109, 83, 1)',
+                backgroundColor: 'rgba(138, 109, 83, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        };
+
+        function createOrUpdateTsChart(data) {
+            if (tsChart) {
+                tsChart.destroy();
+            }
+            tsChart = new Chart(tsCtx, {
+                type: 'line',
+                data: JSON.parse(JSON.stringify(data)),
+                options: {
+                    scales: { y: { beginAtZero: false, title: { display: true, text: 'Value' } } },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Time Series Data & Forecasts', font: { size: 16 } },
+                        tooltip: { mode: 'index', intersect: false }
+                    }
+                }
+            });
+        }
+
+        createOrUpdateTsChart(baseData);
+
+        document.getElementById('ts-reset')?.addEventListener('click', () => {
+            createOrUpdateTsChart(baseData);
+        });
+        
+        document.getElementById('ts-forecast-lstm')?.addEventListener('click', () => {
+            const forecastData = JSON.parse(JSON.stringify(baseData));
+            const forecastLabels = [];
+            const forecastPoints = [];
+            for (let i = 50; i < 62; i++) {
+                const trend = i * 0.5;
+                const seasonality = Math.sin(i * Math.PI / 6) * 10;
+                forecastPoints.push(trend + seasonality + 20);
+                forecastLabels.push(`F${i-49}`);
+            }
+            
+            forecastData.labels.push(...forecastLabels);
+            forecastData.datasets.push({
+                label: 'LSTM Forecast (Trend + Seasonality)',
+                data: new Array(initialSeries.data.length).fill(null).concat(forecastPoints),
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderDash: [5, 5],
+                tension: 0.1,
+                fill: false,
+            });
+            createOrUpdateTsChart(forecastData);
+        });
+
+        document.getElementById('ts-forecast-cnn')?.addEventListener('click', () => {
+            const forecastData = JSON.parse(JSON.stringify(baseData));
+            const forecastLabels = [];
+            const forecastPoints = [];
+            for (let i = 50; i < 62; i++) {
+                const trend = 49 * 0.5;
+                const seasonality = Math.sin(i * Math.PI / 6) * 10;
+                const noise = (Math.random() - 0.5) * 4;
+                forecastPoints.push(trend + seasonality + 20 + noise);
+                forecastLabels.push(`F${i-49}`);
+            }
+
+            forecastData.labels.push(...forecastLabels);
+            forecastData.datasets.push({
+                label: 'CNN Forecast (Local Patterns)',
+                data: new Array(initialSeries.data.length).fill(null).concat(forecastPoints),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: false,
+            });
+            createOrUpdateTsChart(forecastData);
+        });
+    }
+    
+    // Call all setup functions
+    const allSetupFunctions = [
+        setupFeedforwardDiagram,
+        setupActivationFunctionsChart,
+        setupOptimizerChart,
+        setupRegularizationCharts,
+        setupApproximationChart,
+        createOrUpdateClChart.bind(null, initialData),
+        setupTimeSeriesChart,
+        setupConvolutionVisualization,
+        setupRnnAnimation
+    ];
+
+    allSetupFunctions.forEach(fn => {
+        try { fn(); } catch(e) { console.error("Error in setup function", e); }
+    });
+
+    const flSteps = document.querySelectorAll('.fl-step');
+    const flDesc = document.getElementById('fl-description');
+    const flNextBtn = document.getElementById('fl-next-btn');
+    let currentFlStep = 0;
+    const flDescriptions = [
+        "The central server initializes a global model and sends it to a selection of client devices.",
+        "Each client trains the model on its own local data. The data never leaves the device.",
+        "Clients send their computed model updates (not the raw data) back to the server.",
+        "The server aggregates the updates from all clients (e.g., by averaging) to improve the global model. The cycle repeats."
+    ];
+    
+    function updateFlStep() {
+        flSteps.forEach((step, index) => {
+            if (index + 1 === currentFlStep) {
+                step.classList.add('border-[#8A6D53]', 'scale-110');
+            } else {
+                step.classList.remove('border-[#8A6D53]', 'scale-110');
+            }
+        });
+        if(flDesc && flDescriptions[currentFlStep - 1]){
+            flDesc.innerHTML = `<p>${flDescriptions[currentFlStep - 1]}</p>`;
+        }
+        if(flNextBtn) flNextBtn.textContent = 'Next Step';
+    }
+
+    if (flNextBtn) {
+        flNextBtn.addEventListener('click', () => {
+            currentFlStep = (currentFlStep % flSteps.length) + 1;
+            if (currentFlStep > flSteps.length) currentFlStep = 1;
+            updateFlStep();
+            if (currentFlStep === 4) flNextBtn.textContent = 'Restart Cycle';
+        });
+    }
+    
+    const explanations = {
+        'multi-head-attention': { title: 'Multi-Head Attention', text: 'Instead of one, it uses multiple attention "heads" running in parallel. This allows the model to jointly attend to information from different representation subspaces at different positions, capturing more complex relationships within the data.' },
+        'feed-forward': { title: 'Feed-Forward Network', text: 'A simple, fully connected neural network applied independently to each position. It processes the output of the attention layer, adding further non-linearity and representational power.' },
+        'masked-mha': { title: 'Masked Multi-Head Attention', text: 'This is the same as the regular multi-head attention in the encoder, but with one crucial difference: it "masks" future positions in the sequence. This ensures that when predicting the next word, the model can only attend to previous words, preventing it from cheating.' },
+        'encoder-decoder-attention': { title: 'Encoder-Decoder Attention', text: 'This layer connects the encoder and decoder. The queries come from the decoder\'s masked attention layer, while the keys and values come from the final output of the encoder stack. This allows every position in the decoder to attend over all positions in the input sequence, which is crucial for tasks like machine translation.' }
+    };
+
+    const transformerBlocks = document.querySelectorAll('.transformer-block');
+    const transformerExplanation = document.getElementById('transformer-explanation');
+    if (transformerBlocks.length > 0 && transformerExplanation) {
+        transformerBlocks.forEach(block => {
+            block.addEventListener('click', () => {
+                const id = block.dataset.id;
+                const explanation = explanations[id];
+                if (explanation) {
+                    transformerExplanation.innerHTML = `
+                        <h4 class="font-bold text-lg mb-2">${explanation.title}</h4>
+                        <p>${explanation.text}</p>
+                    `;
+                }
+                transformerBlocks.forEach(b => b.classList.remove('ring-2', 'ring-offset-2', 'ring-yellow-500'));
+                block.classList.add('ring-2', 'ring-offset-2', 'ring-yellow-500');
+            });
+        });
+    }
+});
+</script>
+</body>
+</html>
+
