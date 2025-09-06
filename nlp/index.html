@@ -65,7 +65,8 @@
 </head>
 <body class="flex min-h-screen">
     <aside id="sidebar" class="w-72 bg-[#F5F1EC] p-4 fixed top-0 left-0 h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-30 overflow-y-auto">
-        <h2 class="text-xl font-bold text-[#8A6D53] mb-6">NLP Guide</h2>
+        <h2 class="text-xl font-bold text-[#8A6D53] mb-2">NLP Guide</h2>
+        <a href="https://jeringk.github.io/aiml" class="block text-sm text-[#8A6D53] hover:underline mb-4">← Back to AIML Home</a>
         <nav class="space-y-1 text-sm">
             <a href="#topic-1" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">1. NLU & Generation</a>
             <a href="#topic-2" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">2. Vector Semantics & Embedding</a>
@@ -294,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                     <h4 class="font-bold text-lg mb-2">Scaled Dot-Product Attention</h4>
                     <p>The core formula used by Transformers to calculate attention scores.</p>
-                     <div class="text-center my-2">\\\`Attention(Q, K, V) = softmax( (QK^T) / (sqrt(d_k)) )V\\\`</div>
+                     <div class="text-center my-2">\`Attention(Q, K, V) = softmax( (QK^T) / (sqrt(d_k)) )V\`</div>
                 </div>
             </div>`
         },
