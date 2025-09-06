@@ -65,8 +65,7 @@
 </head>
 <body class="flex min-h-screen">
     <aside id="sidebar" class="w-72 bg-[#F5F1EC] p-4 fixed top-0 left-0 h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-30 overflow-y-auto">
-        <h2 class="text-xl font-bold text-[#8A6D53] mb-2">NLP Guide</h2>
-        <a href="https://jeringk.github.io/aiml" class="block text-sm text-[#8A6D53] hover:underline mb-4">← Back to AIML Home</a>
+        <h2 class="text-xl font-bold text-[#8A6D53] mb-4">NLP Guide</h2>
         <nav class="space-y-1 text-sm">
             <a href="#topic-1" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">1. NLU & Generation</a>
             <a href="#topic-2" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">2. Vector Semantics & Embedding</a>
@@ -95,9 +94,12 @@
     <div id="overlay" class="md:hidden fixed inset-0 bg-black opacity-0 z-20 transition-opacity duration-300 hidden"></div>
 
     <main class="flex-1 md:ml-72 p-6 md:p-10">
-        <header class="mb-12">
-            <h1 class="text-4xl font-bold text-[#8A6D53]">Interactive Guide to Natural Language Processing</h1>
-            <p class="mt-2 text-lg text-gray-600">An explorable guide to core NLP concepts. Use the sidebar to navigate.</p>
+        <header class="mb-12 flex justify-between items-center">
+            <div>
+                <h1 class="text-4xl font-bold text-[#8A6D53]">Interactive Guide to Natural Language Processing</h1>
+                <p class="mt-2 text-lg text-gray-600">An explorable guide to core NLP concepts. Use the sidebar to navigate.</p>
+            </div>
+            <a href="https://jeringk.github.io/aiml" class="hidden md:block text-sm text-[#8A6D53] hover:underline font-semibold">Home</a>
         </header>
         
         <div id="dynamic-content" class="space-y-16">
@@ -111,30 +113,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const content = {
         'topic-1': {
             title: "1. Natural Language Understanding and Generation",
-            description: "NLU and NLG are the two fundamental pillars of NLP. NLU focuses on a machine's ability to comprehend human language, while NLG focuses on its ability to produce it. This process involves multiple layers of analysis.",
+            description: "NLU and NLG are the two fundamental pillars of NLP, representing the 'input' and 'output' of language processing. NLU focuses on a machine's ability to comprehend human language (reading or listening), while NLG focuses on its ability to produce fluent, human-like language (writing or speaking). Both are crucial for creating conversational AI.",
             html: `
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-2xl font-semibold text-gray-800 mb-4">The Different Levels of Language Analysis</h3>
-                <p class="mb-6">To truly understand language, a system must analyze it at several hierarchical levels, from the basic sounds to the intended meaning in context.</p>
-                <div class="space-y-4">
-                    <div class="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg"><strong>Pragmatics:</strong> Understanding the intended meaning and context beyond the literal words. (e.g., "Can you pass the salt?" is a request, not a question of ability).</div>
-                    <div class="p-4 bg-green-50 border-l-4 border-green-400 rounded-r-lg"><strong>Semantics:</strong> Determining the literal meaning of words and phrases. (e.g., "The cat sat on the mat" describes an action and objects).</div>
-                    <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg"><strong>Syntax:</strong> Analyzing the grammatical structure of a sentence. (e.g., Identifying the subject, verb, and object).</div>
-                    <div class="p-4 bg-purple-50 border-l-4 border-purple-400 rounded-r-lg"><strong>Morphology:</strong> Breaking words down into their smallest meaningful units (morphemes). (e.g., "unhappiness" -> "un-", "happy", "-ness").</div>
-                    <div class="p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg"><strong>Phonology:</strong> Understanding the sound system of a language. (e.g., How sounds combine to form words).</div>
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">NLU vs. NLG: Core Tasks</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="p-4 border rounded-lg">
+                            <h4 class="font-bold text-lg text-center mb-2">Natural Language Understanding (NLU)</h4>
+                            <p class="text-sm mb-2 text-center text-gray-600">Input → Structured Data</p>
+                            <ul class="list-disc list-inside text-sm space-y-1">
+                                <li><strong>Sentiment Analysis:</strong> Identifying the emotional tone of a text.</li>
+                                <li><strong>Named Entity Recognition (NER):</strong> Extracting entities like names, dates, and places.</li>
+                                <li><strong>Intent Classification:</strong> Determining the user's goal (e.g., 'book a flight').</li>
+                                <li><strong>Machine Translation:</strong> Translating text from one language to another.</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 border rounded-lg">
+                            <h4 class="font-bold text-lg text-center mb-2">Natural Language Generation (NLG)</h4>
+                            <p class="text-sm mb-2 text-center text-gray-600">Structured Data → Output</p>
+                            <ul class="list-disc list-inside text-sm space-y-1">
+                                <li><strong>Text Summarization:</strong> Creating a concise summary from a longer document.</li>
+                                <li><strong>Question Answering:</strong> Generating a natural language answer to a query.</li>
+                                <li><strong>Dialogue Systems:</strong> Crafting responses in a chatbot conversation.</li>
+                                <li><strong>Data-to-Text:</strong> Generating a report from structured data (e.g., a spreadsheet).</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-            </div>`
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">The Different Levels of Language Analysis</h3>
+                    <p class="mb-6">To truly understand language, a system must analyze it at several hierarchical levels, from the basic sounds to the intended meaning in context.</p>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg"><strong>Pragmatics:</strong> Understanding the intended meaning and context beyond the literal words. (e.g., "Can you pass the salt?" is a request, not a question of ability).</div>
+                        <div class="p-4 bg-green-50 border-l-4 border-green-400 rounded-r-lg"><strong>Semantics:</strong> Determining the literal meaning of words and phrases. (e.g., "The cat sat on the mat" describes an action and objects).</div>
+                        <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg"><strong>Syntax:</strong> Analyzing the grammatical structure of a sentence. (e.g., Identifying the subject, verb, and object).</div>
+                        <div class="p-4 bg-purple-50 border-l-4 border-purple-400 rounded-r-lg"><strong>Morphology:</strong> Breaking words down into their smallest meaningful units (morphemes). (e.g., "unhappiness" -> "un-", "happy", "-ness").</div>
+                        <div class="p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg"><strong>Phonology:</strong> Understanding the sound system of a language. (e.g., How sounds combine to form words).</div>
+                    </div>
+                </div>
+            </div>
+            `
         },
         'topic-2': {
             title: "2. Vector Semantics and Embedding",
-            description: "Vector semantics represents words as dense numerical vectors in a multi-dimensional space. The position of a word's vector is determined by its context, allowing models to capture semantic relationships like 'king' is to 'queen' as 'man' is to 'woman'.",
+            description: "Vector semantics represents words as dense numerical vectors in a multi-dimensional space. The position of a word's vector is determined by its context—the words it appears with—based on the 'distributional hypothesis': a word is characterized by the company it keeps.",
             html: `
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-2xl font-semibold text-gray-800 mb-4">Visualizing Word Embeddings</h3>
-                <p class="mb-4">This chart shows a 2D projection of word vectors. Notice how concepts with similar meanings are clustered together, and the vector relationships between pairs like (man, woman) and (king, queen) are similar. This geometric relationship allows for reasoning through vector arithmetic.</p>
-                <div class="chart-container"><canvas id="wordEmbeddingChart"></canvas></div>
-                <p class="text-center mt-4 font-mono text-gray-600">vec("king") - vec("man") + vec("woman") ≈ vec("queen")</p>
-            </div>`
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Visualizing Word Embeddings</h3>
+                    <p class="mb-4">This chart shows a 2D projection of word vectors. Notice how concepts with similar meanings are clustered together, and the vector relationships between pairs like (man, woman) and (king, queen) are similar. This geometric relationship allows for reasoning through vector arithmetic.</p>
+                    <div class="chart-container"><canvas id="wordEmbeddingChart"></canvas></div>
+                    <p class="text-center mt-4 font-mono text-gray-600">vec("king") - vec("man") + vec("woman") ≈ vec("queen")</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Key Embedding Models</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">TF-IDF (Term Frequency-Inverse Document Frequency)</h4>
+                            <p class="text-sm">A classical, frequency-based approach. It creates very long, sparse vectors where most values are zero. The score for a word is high if it appears frequently in one document but rarely in the overall corpus. It's good for information retrieval but doesn't capture semantic meaning.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Word2Vec (Google)</h4>
+                            <p class="text-sm">A predictive model that learns dense embeddings.
+                                <br>• <strong>CBOW (Continuous Bag-of-Words):</strong> Predicts a target word from its surrounding context words.
+                                <br>• <strong>Skip-gram:</strong> Predicts surrounding context words from a single target word. More computationally intensive but often better for infrequent words.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">GloVe (Global Vectors)</h4>
+                            <p class="text-sm">A count-based model that also learns dense embeddings. Instead of predicting context, GloVe learns by looking at the global co-occurrence statistics of words across the entire corpus, aiming to capture meaning more directly from these high-level stats.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-bold text-lg mb-2">Contextual Embeddings (BERT, etc.)</h4>
+                             <p class="text-sm">The modern approach. Unlike the models above which produce a single static vector for each word, contextual models generate embeddings that change based on the sentence the word is in. The vector for "bank" is different in "river bank" vs. "money bank".</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
         },
         'topic-3': {
             title: "3. N-gram Language Modelling",
@@ -296,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                     <h4 class="font-bold text-lg mb-2">Scaled Dot-Product Attention</h4>
                     <p>The core formula used by Transformers to calculate attention scores.</p>
-                     <div class="text-center my-2">\\\`Attention(Q, K, V) = softmax( (QK^T) / (sqrt(d_k)) )V\\\`</div>
+                     <div class="text-center my-2">\`Attention(Q, K, V) = softmax( \\frac{QK^{T}}{\\sqrt{d_k}} )V\`</div>
                 </div>
             </div>`
         },
@@ -424,10 +480,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <div class="bg-white p-6 rounded-lg shadow-md">
                     <h4 class="font-semibold text-lg text-gray-800 mb-2">Question 3: Word Embedding Arithmetic</h4>
-                    <p class="mb-4">Using the concept of vector arithmetic from word embeddings, what would you expect the result of the operation \\\`vector('Paris') - vector('France') + vector('Germany')\\\` to be closest to?</p>
+                    <p class="mb-4">Using the concept of vector arithmetic from word embeddings, what would you expect the result of the operation \`vector('Paris') - vector('France') + vector('Germany')\` to be closest to?</p>
                     <div class="p-4 bg-gray-50 rounded-lg text-gray-700 space-y-2">
                         <p>The expected result would be a vector very close to <strong>vector('Berlin')</strong>.</p>
-                        <p>The operation \\\`vector('Paris') - vector('France')\\\` captures the semantic relationship of "capital city of". By adding \\\`vector('Germany')\\\` to this relationship vector, we are effectively asking, "What is the capital of Germany?", leading to 'Berlin'.</p>
+                        <p>The operation \`vector('Paris') - vector('France')\` captures the semantic relationship of "capital city of". By adding \`vector('Germany')\` to this relationship vector, we are effectively asking, "What is the capital of Germany?", leading to 'Berlin'.</p>
                         <p class="pt-2"><em><a href="#topic-2" class="text-[#8A6D53] hover:underline">→ See more on Vector Semantics & Embedding</a></em></p>
                     </div>
                 </div>
@@ -474,7 +530,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // This function call is the key to rendering the formulas
     if (window.renderMathInElement) {
         renderMathInElement(document.body, {
-            delimiters: [ { left: '`', right: '`', display: false } ]
+            delimiters: [
+                {left: '`', right: '`', display: false},
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ]
         });
     }
 

@@ -101,6 +101,12 @@
             text-decoration: underline;
             cursor: pointer;
         }
+        .algo-step {
+            padding-left: 1rem;
+            border-left: 3px solid #E9E4DB;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body class="flex min-h-screen">
@@ -444,20 +450,29 @@
                     </div>
                 `},
                  { id: 'func-approx', title: 'Function Approximation', content: `
-                    <p class="text-lg text-gray-700 mb-6">For problems with large or continuous state spaces, we approximate the value function with a parameterized function $\\hat{v}(s, \\mathbf{w})$. This allows generalization across states.</p>
+                    <p class="text-lg text-gray-700 mb-6">For many real-world problems, the state space is too large to be stored in a table (like a Q-table). Function approximation allows us to generalize from seen states to unseen states by representing the value function with a parameterized function, such as a linear function or a neural network.</p>
                      <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Feature Construction & Tile Coding</h3>
-                            <p class="text-gray-600">For linear methods, we must construct a feature vector $\\mathbf{x}(s)$ for each state. <strong>Tile coding</strong> is a popular method for continuous spaces, where the space is overlaid with multiple tilings. Each tile acts as a binary feature, allowing for coarse but effective generalization.</p>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">The Curse of Dimensionality</h3>
+                            <p class="text-gray-600">This is the core problem that function approximation solves. Tabular methods require memory and computation for every single state. As we add more variables to describe a state, the total number of possible states grows exponentially. This is impractical.</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
+                                <li><strong>Large State Spaces:</strong> Problems like Chess or Go have a finite but astronomically large number of board positions ($>10^{40}$ in Go). A table is impossible.</li>
+                                <li><strong>Continuous State Spaces:</strong> In robotics or autonomous driving, a state is defined by real-valued numbers (e.g., position, velocity, angle). Since these values are continuous, there are infinitely many possible states. A table cannot even be defined.</li>
+                            </ul>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Example: A Smart Thermostat</h3>
+                            <p class="text-gray-600">Imagine an agent controlling a thermostat. The state is the current temperature (e.g., 21.34°C). This is a continuous state space. Instead of a table, we can approximate the value function with a simple linear function: $ \\hat{v}(temp, \\mathbf{w}) = w_1 \\cdot temp + w_2 $. Now, the agent only needs to learn two parameters ($w_1, w_2$) instead of an infinite number of values. If the agent learns that 22°C is a good temperature, the function will automatically <strong>generalize</strong> and infer that 22.1°C is also likely a good temperature, even if it has never been experienced before.</p>
                         </div>
                         <div class="card p-6 rounded-lg">
                             <h3 class="text-xl font-semibold text-gray-900 mb-2">Semi-Gradient TD Methods</h3>
-                            <p class="text-gray-600">We use gradient-descent to update the function's weight vector $\\mathbf{w}$. It's called "semi-gradient" because it ignores the effect of changing $\\mathbf{w}$ on the TD target, but works well in practice.</p>
+                            <p class="text-gray-600">When we use function approximation, we update the function's weight vector $\\mathbf{w}$ using gradient descent to minimize the error. The update rule for the weights becomes:</p>
                             <div class="formula" data-katex="\\mathbf{w} \\leftarrow \\mathbf{w} + \\alpha [R + \\gamma \\hat{v}(S', \\mathbf{w}) - \\hat{v}(S, \\mathbf{w})] \\nabla \\hat{v}(S, \\mathbf{w})"></div>
+                            <p class="text-gray-600 mt-2">This is called a "semi-gradient" method because the gradient is taken with respect to the current value estimate $\\hat{v}(S, \\mathbf{w})$, but it ignores the fact that the TD target also depends on $\\mathbf{w}$. Despite this simplification, it works well in practice.</p>
                         </div>
                          <div class="card p-6 rounded-lg">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Off-Policy Function Approximation</h3>
-                            <p class="text-gray-600">Combining off-policy methods (like Q-Learning) with function approximation is challenging. The combination of bootstrapping, off-policy training, and function approximation is known as the "deadly triad" and can lead to instability and divergence.</p>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">The Deadly Triad</h3>
+                            <p class="text-gray-600">Combining off-policy methods (like Q-Learning) with function approximation and bootstrapping is notoriously unstable and can cause the learning process to diverge. This combination is known as the "deadly triad," and many advanced Deep RL algorithms are designed specifically to mitigate this instability.</p>
                         </div>
                     </div>
                      <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="fa-quiz" data-correct-answer="b">
@@ -571,12 +586,57 @@
                     </div>
                 `},
                 { id: 'alphago', title: 'AlphaGo & MuZero', content: `
-                    <div class="card p-6 rounded-lg">
-                        <p class="text-gray-600">These landmark systems from DeepMind showcase the power of deep RL and search.
-                            <br>• <strong>AlphaGo:</strong> Famously defeated world champion Lee Sedol. It used two neural networks—a "policy network" to select moves and a "value network" to predict the winner—trained on human expert games. These networks guided a powerful MCTS algorithm.
-                            <br>• <strong>AlphaGo Zero:</strong> A more powerful version that learned entirely from self-play, without any human data. Starting with random play, it discovered strategies far superior to human play, demonstrating that tabula rasa learning could surpass human knowledge.
-                            <br>• <strong>MuZero:</strong> The most general of the three. It masters games like Go, chess, and Atari <span class="italic">without being told the rules</span>. MuZero learns its own model of the environment focused only on the aspects relevant for planning (predicting the next reward, policy, and value), making it a significant step towards more general-purpose algorithms.
-                        </p>
+                    <p class="text-lg text-gray-700 mb-6">This family of algorithms from DeepMind represents landmarks in the history of AI, combining deep learning with powerful search algorithms to achieve superhuman performance in complex strategy games.</p>
+                    <div class="space-y-8">
+                        <!-- AlphaGo -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">AlphaGo: The Hybrid Approach</h3>
+                            <p class="text-gray-600">The first program to defeat a professional human Go player. It used a hybrid approach, learning from both human expert games and self-play.</p>
+                            <h4 class="font-semibold text-gray-800 mt-4">Key Components:</h4>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
+                                <li><strong>Policy Network ($p_\\sigma$):</strong> A neural network trained via Supervised Learning on a dataset of human expert moves. It learns to predict which move a human would make in a given position. This is used to narrow the search space in MCTS.</li>
+                                <li><strong>Value Network ($v_\\theta$):</strong> A neural network trained to predict the winner from a given board position. It evaluates positions, reducing the need for MCTS to simulate all the way to the end of the game.</li>
+                                <li><strong>Reinforcement Learning:</strong> A second policy network ($p_\\rho$) was trained via RL self-play to improve upon the supervised model.</li>
+                                <li><strong>Monte Carlo Tree Search (MCTS):</strong> The core decision-making engine. MCTS uses the policy network to guide its search to promising moves and the value network to evaluate leaf nodes.</li>
+                            </ul>
+                            <h4 class="font-semibold text-gray-800 mt-4">Algorithm:</h4>
+                            <div class="algo-step"><strong>1. Supervised Learning Phase:</strong> Train the policy network $p_\\sigma$ on a large database of human games.</div>
+                            <div class="algo-step"><strong>2. Reinforcement Learning Phase:</strong> Initialize a new policy network $p_\\rho$ with the weights of $p_\\sigma$. Play games between current and previous versions of $p_\\rho$ and update its weights using policy gradients to maximize wins.</div>
+                             <div class="algo-step"><strong>3. Value Network Training:</strong> Train the value network $v_\\theta$ to predict the outcome of games played by the RL-trained policy network $p_\\rho$.</div>
+                             <div class="algo-step"><strong>4. MCTS Planning:</strong> At test time, use MCTS guided by both $p_\\rho$ and $v_\\theta$ to select the best move.</div>
+                        </div>
+
+                        <!-- AlphaGo Zero -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">AlphaGo Zero: Learning from Scratch</h3>
+                            <p class="text-gray-600">A more powerful and elegant version that learned entirely from self-play (<em>tabula rasa</em>), without any human data, surpassing all previous versions.</p>
+                            <h4 class="font-semibold text-gray-800 mt-4">Key Innovations:</h4>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
+                                <li><strong>No Human Data:</strong> Learned purely from self-play, starting from random moves. This allowed it to discover novel, superhuman strategies.</li>
+                                <li><strong>Single Unified Network:</strong> It uses a single neural network, $f_\\theta(s)$, that takes the board state $s$ and outputs both a policy (move probabilities $\\mathbf{p}$) and a value (a scalar win prediction $v$). This is more efficient and allows the policy and value to be learned together.</li>
+                                <li><strong>Simplified MCTS:</strong> The MCTS is guided solely by this unified network, removing the need for separate rollout simulations.</li>
+                            </ul>
+                            <h4 class="font-semibold text-gray-800 mt-4">Algorithm:</h4>
+                            <div class="algo-step"><strong>1. Self-Play:</strong> The current best network $f_\\theta$ plays games against itself. In each position, it runs an MCTS to select a move. The MCTS search results are stored as $(s, \\pi, z)$, where $\\pi$ is the improved search policy and $z$ is the game outcome.</div>
+                            <div class="algo-step"><strong>2. Network Training:</strong> A new network is trained on the data $(s, \\pi, z)$ collected from self-play. The loss function aims to make the network's output $(\\mathbf{p}, v)$ match the MCTS search results $(\\pi, z)$.</div>
+                            <div class="algo-step"><strong>3. Evaluation:</strong> The new network is evaluated against the current best. If it wins by a clear margin, it becomes the new best network for the next iteration of self-play.</div>
+                        </div>
+                        
+                        <!-- MuZero -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">MuZero: Mastering Games Without Rules</h3>
+                            <p class="text-gray-600">The most general version. It achieves superhuman performance in Go, chess, shogi, and Atari games without being told the rules of the environment.</p>
+                            <h4 class="font-semibold text-gray-800 mt-4">Key Innovation:</h4>
+                             <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
+                                <li><strong>Learned Model:</strong> MuZero does not have access to a simulator or the game's rules. Instead, it learns its own model of the environment's dynamics. This model is focused only on the aspects relevant for planning.</li>
+                            </ul>
+                             <h4 class="font-semibold text-gray-800 mt-4">Algorithm (Conceptual):</h4>
+                            <p class="text-gray-600">For each move, MuZero uses MCTS. When the MCTS needs to evaluate a new, hypothetical state, it uses three learned functions:</p>
+                             <div class="algo-step"><strong>1. Representation Function ($h$):</strong> Maps a history of observations to a hidden state $s_0$.</div>
+                            <div class="algo-step"><strong>2. Dynamics Function ($g$):</strong> Takes a state and an action to predict the next hidden state, reward, and policy/value: $s_{k}, r_k, p_k, v_k = g(s_{k-1}, a_k)$. This is the learned model.</div>
+                             <div class="algo-step"><strong>3. Prediction Function ($f$):</strong> Takes a hidden state and predicts the policy and value: $p_k, v_k = f(s_k)$.</div>
+                            <p class="text-gray-600 mt-2">By repeatedly applying the dynamics function $g$ inside its search, MuZero can "look ahead" and plan effectively using its own internal model of the world.</p>
+                        </div>
                     </div>
                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="alphago-quiz" data-correct-answer="b">
                         <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>

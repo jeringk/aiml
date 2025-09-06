@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Canvas of Deep Neural Networks</title>
+    <title>Deep Neural Networks</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -81,16 +81,8 @@
 </head>
 <body class="flex min-h-screen">
     <aside id="sidebar" class="w-64 bg-[#F5F1EC] p-4 fixed top-0 left-0 h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-30 overflow-y-auto">
-        <h2 class="text-xl font-bold text-[#8A6D53] mb-2">DNN Canvas</h2>
-        <a href="https://jeringk.github.io/aiml" class="text-sm text-blue-600 hover:underline mb-4 block">← Back to AIML Home</a>
+        <h2 class="text-xl font-bold text-[#8A6D53] mb-4">DNN Canvas</h2>
         
-        <div class="relative mb-4">
-            <input type="search" id="search-input" placeholder="Search..." class="w-full p-2 pr-10 text-sm border rounded-md focus:ring-2 focus:ring-[#8A6D53] focus:outline-none">
-            <button id="search-clear" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-800" aria-label="Clear search">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-            </button>
-        </div>
-
         <nav class="space-y-2">
             <a href="#topic-0" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">0. Fundamentals</a>
             <a href="#topic-1" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">1. Deep Feedforward Networks</a>
@@ -121,7 +113,10 @@
 
     <main class="flex-1 md:ml-64 p-6 md:p-10">
         <header class="mb-12">
-            <h1 class="text-4xl font-bold text-[#8A6D53]">Interactive Canvas of Deep Neural Networks</h1>
+            <div class="flex justify-between items-center">
+                <h1 class="text-4xl font-bold text-[#8A6D53]">Deep Neural Networks</h1>
+                <a href="https://jeringk.github.io/aiml" class="text-lg text-[#8A6D53] hover:underline">Home</a>
+            </div>
             <p class="mt-2 text-lg text-gray-600">An explorable guide to core concepts in DNNs. Use the sidebar to navigate topics.</p>
         </header>
         
@@ -989,74 +984,10 @@ document.addEventListener('DOMContentLoaded', () => {
              }
         });
     });
-
-    function setupSearch() {
-        const searchInput = document.getElementById('search-input');
-        const clearBtn = document.getElementById('search-clear');
-        const contentArea = document.getElementById('dynamic-content');
-        if (!searchInput || !clearBtn || !contentArea) return;
-
-        const unhighlight = () => {
-            const marks = contentArea.querySelectorAll('mark');
-            marks.forEach(mark => {
-                const parent = mark.parentNode;
-                if(parent) {
-                    parent.replaceChild(document.createTextNode(mark.textContent), mark);
-                    parent.normalize(); 
-                }
-            });
-        };
-
-        const highlight = (term) => {
-            unhighlight();
-            if (!term) return;
-
-            const regex = new RegExp(term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
-            const walker = document.createTreeWalker(contentArea, NodeFilter.SHOW_TEXT, null, false);
-            let node;
-            const nodesToReplace = [];
-
-            while (node = walker.nextNode()) {
-                if (node.parentElement.tagName === 'MARK' || node.parentElement.tagName === 'SCRIPT' || node.parentElement.tagName === 'STYLE') continue;
-                
-                if (regex.test(node.textContent)) {
-                    nodesToReplace.push(node);
-                }
-            }
-            
-            nodesToReplace.forEach(node => {
-                 const fragment = document.createDocumentFragment();
-                 let lastIndex = 0;
-                 node.textContent.replace(regex, (match, offset) => {
-                    fragment.appendChild(document.createTextNode(node.textContent.slice(lastIndex, offset)));
-                    const mark = document.createElement('mark');
-                    mark.textContent = match;
-                    fragment.appendChild(mark);
-                    lastIndex = offset + match.length;
-                 });
-                 fragment.appendChild(document.createTextNode(node.textContent.slice(lastIndex)));
-                 node.parentNode.replaceChild(fragment, node);
-            });
-        };
-
-        let searchTimeout;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                 highlight(searchInput.value.trim());
-            }, 300); // Debounce search
-        });
-
-        clearBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            unhighlight();
-        });
-    }
-
+    
     function setupFeedforwardDiagram() {
         const diagram = document.getElementById('ff-diagram');
         if (!diagram) return;
-
         const description = document.getElementById('ff-description');
         const forwardBtn = document.getElementById('ff-forward-btn');
         const backwardBtn = document.getElementById('ff-backward-btn');
@@ -2001,7 +1932,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Call all setup functions
     const allSetupFunctions = [
-        setupSearch,
         setupFeedforwardDiagram,
         setupActivationFunctionsChart,
         setupOptimizerChart,
