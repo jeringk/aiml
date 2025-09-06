@@ -96,13 +96,19 @@
             color: #555;
             font-family: monospace;
         }
+        .solution-link {
+            color: #4A90E2;
+            text-decoration: underline;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="flex min-h-screen">
 
     <!-- Sidebar Navigation -->
-    <aside class="w-64 flex-shrink-0 p-6 overflow-y-auto h-screen sticky top-0 border-r border-gray-200">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6 px-4">RL Topics</h1>
+    <aside id="sidebar" class="w-64 flex-shrink-0 p-6 overflow-y-auto h-screen sticky top-0 border-r border-gray-200">
+        <h2 class="text-xl font-bold text-[#8A6D53] mb-2 px-4">DRL Guide</h2>
+        <a href="https://jeringk.github.io/aiml" class="block text-sm text-[#8A6D53] hover:underline mb-4 px-4">← Back to AIML Home</a>
         <nav id="sidebar-nav" class="space-y-1">
             <!-- Navigation items will be injected by JS -->
         </nav>
@@ -681,6 +687,166 @@
                         <div class="quiz-feedback hidden"></div>
                     </div>
                 `},
+                { id: 'sample-questions', title: 'Sample Questions', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Sample Exam Questions</h2>
+                    <div class="space-y-8">
+                        <!-- Question 1 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 1: The Discount Factor</h3>
+                            <p class="font-medium text-gray-700 mb-4">An agent is in a maze with two paths to a goal. Path A is short (3 steps) but passes through a fire pit that gives a -10 reward. Path B is long (10 steps) with no negative rewards. Each step gives a reward of -1, and the goal gives +100. How does the discount factor, $\\gamma$, influence which path the agent prefers? </p>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">The discount factor $\\gamma$ determines how much the agent values future rewards compared to immediate ones. A low $\\gamma$ makes the agent "myopic," while a high $\\gamma$ makes it "farsighted."</p>
+                                <ul class="list-disc list-inside text-gray-600 space-y-1 mt-2">
+                                    <li><strong>High $\\gamma$ (e.g., 0.99):</strong> The agent is patient. It will heavily weigh the final +100 reward and will likely choose the longer Path B to avoid the large immediate penalty of the fire pit, as the cumulative step penalties will be less significant than the -10 from the fire.</li>
+                                    <li><strong>Low $\\gamma$ (e.g., 0.5):</strong> The agent is impatient. The future +100 reward is heavily discounted. The immediate -10 penalty from the fire pit might be preferable to accumulating many -1 step penalties, making Path A seem more attractive. The agent prioritizes avoiding immediate costs.</li>
+                                </ul>
+                                <p class="text-gray-600 mt-2">Relevant Section: <span class="solution-link" data-target="elements-rl">Elements of RL (Value Function)</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Question 2 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 2: DP vs. MC Methods</h3>
+                            <p class="font-medium text-gray-700 mb-4">When would you prefer a Monte Carlo method over a Dynamic Programming method to solve an MDP? Conversely, when is DP a better choice?</p>
+                             <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">The choice depends primarily on whether you have a model of the environment.</p>
+                                <ul class="list-disc list-inside text-gray-600 space-y-1 mt-2">
+                                    <li><strong>Prefer Monte Carlo when:</strong> The model of the environment (state transition probabilities and rewards) is unknown or too complex to define. MC methods are model-free and learn directly from experienced episodes. This makes them suitable for complex games or real-world interactions where the rules are not fully known.</li>
+                                    <li><strong>Prefer Dynamic Programming when:</strong> You have a perfect model of the MDP. If the state and action spaces are manageably small, DP methods like Value Iteration are highly efficient and guaranteed to find the optimal solution. This is ideal for planning problems like inventory management or resource allocation where the system dynamics are well-defined.</li>
+                                </ul>
+                                <p class="text-gray-600 mt-2">Relevant Sections: <span class="solution-link" data-target="dp">Dynamic Programming</span> and <span class="solution-link" data-target="mc">Monte Carlo Methods</span></p>
+                            </div>
+                        </div>
+
+                         <!-- Question 3 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 3: TD Learning Update</h3>
+                            <p class="font-medium text-gray-700 mb-4">An agent is in state A, where $V(A) = 10$. It takes an action and transitions to state B, where $V(B) = 20$, receiving a reward of $R = 5$. Using a learning rate $\\alpha = 0.1$ and discount factor $\\gamma = 0.9$, calculate the new value for $V(A)$ after this one-step transition using TD(0).</p>
+                             <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">We use the TD(0) update rule: $V(S_t) \\leftarrow V(S_t) + \\alpha [R_{t+1} + \\gamma V(S_{t+1}) - V(S_t)]$.</p>
+                                <ol class="list-decimal list-inside text-gray-600 space-y-1 mt-2">
+                                    <li><strong>Calculate the TD Target:</strong> $R_{t+1} + \\gamma V(S_{t+1}) = 5 + 0.9 \\times 20 = 5 + 18 = 23$.</li>
+                                    <li><strong>Calculate the TD Error:</strong> $\\delta_t = \\text{TD Target} - V(S_t) = 23 - 10 = 13$.</li>
+                                    <li><strong>Apply the update:</strong> $V(A)_{new} = V(A)_{old} + \\alpha \\times \\delta_t = 10 + 0.1 \\times 13 = 10 + 1.3 = 11.3$.</li>
+                                </ol>
+                                 <p class="text-gray-600 mt-2">The new value for state A is 11.3.</p>
+                                <p class="text-gray-600 mt-2">Relevant Section: <span class="solution-link" data-target="td">Temporal Difference Learning</span></p>
+                            </div>
+                        </div>
+                        
+                         <!-- Question 4 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 4: Actor-Critic vs. REINFORCE</h3>
+                            <p class="font-medium text-gray-700 mb-4">Why does an Actor-Critic method generally have lower variance than the REINFORCE algorithm? Explain the roles of the actor and critic.</p>
+                             <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">Actor-Critic methods reduce variance by using a more stable and less noisy signal to update the policy.</p>
+                                 <ul class="list-disc list-inside text-gray-600 space-y-1 mt-2">
+                                    <li><strong>REINFORCE:</strong> Updates the policy based on the full Monte Carlo return ($G_t$) of an entire episode. The return is a sum of many random variables (rewards), which makes it a high-variance estimate of an action's goodness. An action that was good by chance in a successful episode will be heavily reinforced, and vice versa.</li>
+                                    <li><strong>Actor-Critic:</strong>
+                                        <ul>
+                                            <li>The <strong>Actor</strong> is the policy, which decides which action to take.</li>
+                                            <li>The <strong>Critic</strong> is a value function (e.g., $V(s)$ or $Q(s,a)$) that learns to evaluate the "goodness" of states or state-action pairs.</li>
+                                        </ul>
+                                       Instead of using the noisy full return, the Actor uses the Critic's feedback, often in the form of the TD error ($\delta_t$). The TD error is a lower-variance estimate of the action's advantage because it's based on the immediate reward and the value of the next state, rather than the entire sequence of future rewards. This bootstrapping leads to more stable and faster learning.
+                                    </li>
+                                </ul>
+                                <p class="text-gray-600 mt-2">Relevant Section: <span class="solution-link" data-target="policy-grad">Policy Gradient Methods</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Question 5 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 5: UCB Calculation</h3>
+                            <p class="font-medium text-gray-700 mb-4">An agent is facing a 3-armed bandit problem. After 50 total pulls ($N=50$), the arms have been played as follows: Arm 1 ($N(a_1)=10$, avg reward $Q(a_1)=0.8$), Arm 2 ($N(a_2)=25$, avg reward $Q(a_2)=0.6$), and Arm 3 ($N(a_3)=15$, avg reward $Q(a_3)=0.7$). Using the UCB1 formula with an exploration constant $c = \\sqrt{2}$, which arm should the agent pull next?</p>
+                             <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">The UCB1 formula is: $UCB1(a) = Q(a) + c \\sqrt{\\frac{\\ln N}{N(a)}}$. We calculate this for each arm:</p>
+                                <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
+                                    <li><b>Arm 1:</b> $0.8 + \\sqrt{2} \\sqrt{\\frac{\\ln 50}{10}} \\approx 0.8 + 1.414 \\times \\sqrt{\\frac{3.912}{10}} \\approx 0.8 + 1.414 \\times 0.625 \\approx 0.8 + 0.884 = 1.684$</li>
+                                    <li><b>Arm 2:</b> $0.6 + \\sqrt{2} \\sqrt{\\frac{\\ln 50}{25}} \\approx 0.6 + 1.414 \\times \\sqrt{\\frac{3.912}{25}} \\approx 0.6 + 1.414 \\times 0.396 \\approx 0.6 + 0.560 = 1.160$</li>
+                                    <li><b>Arm 3:</b> $0.7 + \\sqrt{2} \\sqrt{\\frac{\\ln 50}{15}} \\approx 0.7 + 1.414 \\times \\sqrt{\\frac{3.912}{15}} \\approx 0.7 + 1.414 \\times 0.511 \\approx 0.7 + 0.722 = 1.422$</li>
+                                </ul>
+                                <p class="text-gray-600 mt-2">The agent should choose <strong>Arm 1</strong> because it has the highest UCB1 score (1.684), indicating the best balance of high past performance and uncertainty.</p>
+                                <p class="text-gray-600 mt-2">Relevant Section: <span class="solution-link" data-target="mcts">MCTS (UCB1)</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Question 6 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 6: SARSA vs. Q-Learning Scenario</h3>
+                            <p class="font-medium text-gray-700 mb-4">An agent is in a "windy gridworld." From state $S_t$, it takes action $A_t$ (move Right). Due to wind, it lands in $S_{t+1}$. From $S_{t+1}$, its $\\epsilon$-greedy policy selects an exploratory (non-optimal) action $A_{t+1}$ (move Down) into a penalty square. How would the Q-value updates for $Q(S_t, A_t)$ differ for SARSA and Q-Learning in this specific step?</p>
+                             <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">The difference lies in which next-state action value they use for the update target.</p>
+                                <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
+                                    <li><strong>SARSA (On-Policy):</strong> Its update uses the quintuple $(S_t, A_t, R_{t+1}, S_{t+1}, A_{t+1})$. It would use the Q-value of the *actual* next action taken, $Q(S_{t+1}, A_{t+1})$ (move Down). Since this action leads to a penalty, the TD target will be low, and $Q(S_t, A_t)$ will be updated downwards. SARSA learns a "safer" policy that accounts for its own exploration.</li>
+                                    <li><strong>Q-Learning (Off-Policy):</strong> Its update rule uses $\\max_a Q(S_{t+1}, a)$. It would ignore the exploratory action $A_{t+1}$ and instead use the Q-value of the *best possible action* from $S_{t+1}$. The update for $Q(S_t, A_t)$ is based on the assumption that the agent will act optimally from now on, resulting in a more optimistic update than SARSA's.</li>
+                                </ul>
+                                <p class="text-gray-600 mt-2">Relevant Section: <span class="solution-link" data-target="td">Temporal Difference Learning</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Question 7 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 7: DQN Components</h3>
+                            <p class="font-medium text-gray-700 mb-4">What are the two primary innovations of the Deep Q-Network (DQN), and what problem does each one solve?</p>
+                             <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">The two key innovations that stabilized Q-learning with deep neural networks are:</p>
+                                <ol class="list-decimal list-inside text-gray-600 space-y-2 mt-2">
+                                    <li><strong>Experience Replay:</strong>
+                                        <ul>
+                                            <li><strong>What it is:</strong> Storing experiences $(s, a, r, s')$ in a large memory buffer and sampling random mini-batches from it to train the network.</li>
+                                            <li><strong>Problem Solved:</strong> It breaks the strong temporal correlations between consecutive samples, making the data more independent and identically distributed (I.I.D.) and stabilizing training. It also increases data efficiency by reusing experiences.</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Fixed Target Network:</strong>
+                                        <ul>
+                                            <li><strong>What it is:</strong> Using a separate, older copy of the Q-network to generate the TD targets. This target network's weights are only updated periodically.</li>
+                                            <li><strong>Problem Solved:</strong> It prevents the learning target from constantly changing. If the same network is used to select and evaluate actions, the target value shifts with every update, leading to oscillations and divergence. A fixed target provides a stable learning signal.</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                                <p class="text-gray-600 mt-2">Relevant Section: <span class="solution-link" data-target="deep-rl">Deep Reinforcement Learning</span></p>
+                            </div>
+                        </div>
+                         <!-- Question 8 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 8: The Deadly Triad</h3>
+                            <p class="font-medium text-gray-700 mb-4">What is the "deadly triad" in reinforcement learning, and why does it pose a challenge?</p>
+                             <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">The "deadly triad" refers to the combination of three elements that can cause learning to become unstable and diverge:</p>
+                                <ol class="list-decimal list-inside text-gray-600 space-y-1 mt-2">
+                                   <li><strong>Function Approximation:</strong> Using a parameterized function (like a neural network) instead of a table to represent the value function, which is necessary for large state spaces.</li>
+                                   <li><strong>Bootstrapping:</strong> Updating value estimates based on other value estimates (e.g., in TD learning and Q-learning).</li>
+                                   <li><strong>Off-policy training:</strong> Learning about a target policy while following a different behavior policy (e.g., in Q-learning).</li>
+                                </ol>
+                                <p class="text-gray-600 mt-2">The combination of these three can lead to a feedback loop where errors in the value function estimate are amplified, causing the network's weights to explode towards infinity. Many modern deep RL algorithms are designed specifically to mitigate the instability caused by the deadly triad.</p>
+                                <p class="text-gray-600 mt-2">Relevant Section: <span class="solution-link" data-target="func-approx">Function Approximation</span></p>
+                            </div>
+                        </div>
+
+                         <!-- Question 9 -->
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Question 9: Imitation Learning</h3>
+                            <p class="font-medium text-gray-700 mb-4">You want to teach a robot to perform a complex task like folding laundry. Why might Imitation Learning be a more practical approach here than standard RL with a sparse reward (e.g., +1 only for a perfectly folded shirt)?</p>
+                             <div class="bg-gray-50 p-4 rounded-md">
+                                <h4 class="font-semibold text-gray-800">Solution:</h4>
+                                <p class="text-gray-600 mt-2">Imitation Learning is often more practical for such tasks for two main reasons:</p>
+                                <ol class="list-decimal list-inside text-gray-600 space-y-1 mt-2">
+                                   <li><strong>Inefficient Exploration:</strong> With a sparse reward, a standard RL agent would have to explore a vast state-action space randomly for a very long time before it stumbles upon the correct sequence of actions to fold a shirt and receive a reward. The probability of discovering this through random exploration is practically zero. Imitation Learning bypasses this by learning from expert demonstrations, which immediately provides a strong learning signal in the relevant part of the state space.</li>
+                                   <li><strong>Complex Reward Function:</strong> Defining a dense reward function that correctly guides the agent through all the intermediate steps of folding laundry is extremely difficult. A poorly designed reward function could lead to unexpected and undesirable behaviors (reward hacking). Imitation Learning, particularly Inverse Reinforcement Learning (IRL), can infer the underlying reward function from demonstrations, which is often easier than specifying it manually.</li>
+                                </ol>
+                                <p class="text-gray-600 mt-2">Relevant Section: <span class="solution-link" data-target="imitation-learning">Imitation Learning</span></p>
+                            </div>
+                        </div>
+                    </div>
+                `},
             ];
             
             const mainContent = document.getElementById('main-content');
@@ -691,7 +857,8 @@
                 'Solution Methods': ['dp', 'mc', 'td'],
                 'Advanced Topics': ['func-approx', 'deep-rl', 'policy-grad'],
                 'Planning & Case Studies': ['mcts', 'alphago', 'imitation-learning'],
-                'Frontiers in RL': ['marl', 'hitl', 'safety']
+                'Frontiers in RL': ['marl', 'hitl', 'safety'],
+                'Practice': ['sample-questions']
             };
 
             // Populate sidebar and content
@@ -733,6 +900,8 @@
             const contentSections = document.querySelectorAll('.content-section');
 
             function switchTab(targetId) {
+                if (!document.getElementById(targetId)) return;
+
                 contentSections.forEach(section => {
                     section.classList.toggle('active', section.id === targetId);
                 });
@@ -755,6 +924,16 @@
                 if (targetId === 'td') initTDGridworld();
                 if (targetId === 'mcts') initMCTSAnimation();
             }
+
+            mainContent.addEventListener('click', (e) => {
+                 if (e.target.classList.contains('solution-link')) {
+                    e.preventDefault();
+                    const targetId = e.target.dataset.target;
+                    switchTab(targetId);
+                    document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
+                 }
+            });
+
 
             sidebarNav.addEventListener('click', (e) => {
                 if (e.target.closest('.sidebar-item')) {
