@@ -82,7 +82,6 @@
             <a href="#topic-12" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">12. Semantic Web & Knowledge Graph</a>
             <a href="#topic-13" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">13. Retrieval Augmented Generation</a>
             <a href="#topic-14" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">14. State of the Art Applications</a>
-            <a href="#topic-15" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">15. Sample Questions</a>
         </nav>
     </aside>
 
@@ -296,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                     <h4 class="font-bold text-lg mb-2">Scaled Dot-Product Attention</h4>
                     <p>The core formula used by Transformers to calculate attention scores.</p>
-                     <div class="text-center my-2">\\\`Attention(Q, K, V) = softmax( (QK^T) / (sqrt(d_k)) )V\\\`</div>
+                     <div class="text-center my-2">\`Attention(Q, K, V) = softmax( (QK^T) / (sqrt(d_k)) )V\`</div>
                 </div>
             </div>`
         },
@@ -392,67 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             </div>`
-        },
-        'topic-15': {
-            title: "15. Sample Questions",
-            description: "Test your understanding of the core concepts with these sample questions, inspired by common NLP course assessments.",
-            html: `
-            <div class="space-y-6">
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h4 class="font-semibold text-lg text-gray-800 mb-2">Question 1: HMM for POS Tagging</h4>
-                    <p class="mb-4">Explain the role of emission and transition probabilities in a Hidden Markov Model (HMM) for POS tagging. Why is the Viterbi algorithm important in this context?</p>
-                    <div class="p-4 bg-gray-50 rounded-lg text-gray-700 space-y-2">
-                        <p><strong>Emission Probability</strong>, P(word|tag), is the likelihood of observing a particular word given a specific part-of-speech tag. For example, P("book"|Noun) would be high, while P("book"|Verb) would be lower.</p>
-                        <p><strong>Transition Probability</strong>, P(tag|previous_tag), is the likelihood of a tag following the previous tag in a sequence. For instance, P(Noun|Adjective) would be high, as nouns often follow adjectives.</p>
-                        <p>The <strong>Viterbi Algorithm</strong> is crucial because it efficiently finds the single most likely sequence of tags for an entire sentence. A naive approach might pick the most likely tag for each word independently, but Viterbi considers the transition probabilities to find the grammatically most probable path.</p>
-                        <p class="pt-2"><em><a href="#topic-7" class="text-[#8A6D53] hover:underline">→ See more on Models of POS Tagging</a></em></p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h4 class="font-semibold text-lg text-gray-800 mb-2">Question 2: Parsing Structures</h4>
-                    <p class="mb-4">What is the key difference between a constituency parse tree and a dependency graph for the sentence 'The lazy dog sleeps'?</p>
-                    <div class="p-4 bg-gray-50 rounded-lg text-gray-700 space-y-2">
-                        <p>The key difference lies in what they represent:</p>
-                        <ul class="list-disc list-inside pl-4">
-                            <li>A <strong>Constituency Tree</strong> groups words into nested phrases (constituents). It shows how "The lazy dog" forms a Noun Phrase (NP) which acts as the subject for the Verb Phrase (VP) "sleeps". The focus is on phrasal structure.</li>
-                            <li>A <strong>Dependency Graph</strong> shows word-to-word relationships (dependencies). It would show that 'dog' is the subject of 'sleeps' (nsubj), 'The' modifies 'dog' (det), and 'lazy' modifies 'dog' (amod). The focus is on grammatical functions between words.</li>
-                        </ul>
-                        <p class="pt-2"><em><a href="#topic-8" class="text-[#8A6D53] hover:underline">→ See more on Parsing</a> and <a href="#topic-9" class="text-[#8A6D53] hover:underline">Dependency Parsing</a></em></p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h4 class="font-semibold text-lg text-gray-800 mb-2">Question 3: Word Embedding Arithmetic</h4>
-                    <p class="mb-4">Using the concept of vector arithmetic from word embeddings, what would you expect the result of the operation \\\`vector('Paris') - vector('France') + vector('Germany')\\\` to be closest to?</p>
-                    <div class="p-4 bg-gray-50 rounded-lg text-gray-700 space-y-2">
-                        <p>The expected result would be a vector very close to <strong>vector('Berlin')</strong>.</p>
-                        <p>The operation \\\`vector('Paris') - vector('France')\\\` captures the semantic relationship of "capital city of". By adding \\\`vector('Germany')\\\` to this relationship vector, we are effectively asking, "What is the capital of Germany?", leading to 'Berlin'.</p>
-                        <p class="pt-2"><em><a href="#topic-2" class="text-[#8A6D53] hover:underline">→ See more on Vector Semantics & Embedding</a></em></p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h4 class="font-semibold text-lg text-gray-800 mb-2">Question 4: The Attention Mechanism</h4>
-                    <p class="mb-4">In the context of the Transformer architecture, what problem does the self-attention mechanism solve that was a limitation in older models like Recurrent Neural Networks (RNNs)?</p>
-                    <div class="p-4 bg-gray-50 rounded-lg text-gray-700 space-y-2">
-                        <p>The self-attention mechanism solves the problem of capturing <strong>long-range dependencies</strong> in text, which was a major limitation of RNNs.</p>
-                        <p>RNNs process sequences word-by-word, and information from early words can get diluted or lost by the time the model reaches later words (the vanishing gradient problem). Self-attention allows the model to directly look at all other words in the sequence at once, regardless of their distance, and calculate a score to determine how much importance to pay to each word. This creates a much richer, more contextualized representation for every word in the input.</p>
-                        <p class="pt-2"><em><a href="#topic-10" class="text-[#8A6D53] hover:underline">→ See more on Encoder-Decoder & Attention</a></em></p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h4 class="font-semibold text-lg text-gray-800 mb-2">Question 5: Retrieval Augmented Generation (RAG)</h4>
-                    <p class="mb-4">Describe a scenario where a standard LLM might provide an incorrect or outdated answer, and explain how a Retrieval Augmented Generation (RAG) system would fix this.</p>
-                    <div class="p-4 bg-gray-50 rounded-lg text-gray-700 space-y-2">
-                        <p><strong>Scenario:</strong> A user asks a standard LLM, "What was the closing price of GOOG stock yesterday?" The LLM, whose knowledge is limited to its last training date (e.g., early 2023), cannot provide real-time information and will likely state that it doesn't have access to current data or hallucinate an answer.</p>
-                        <p><strong>RAG Solution:</strong> A RAG system would first take the query and use the keyword "GOOG stock" to retrieve fresh information from an external knowledge base (like a live financial data API). It would fetch yesterday's closing price. Then, it would augment the user's prompt with this retrieved fact, asking the LLM something like: "Given that the closing price of GOOG yesterday was $175.45, answer the user's question: What was the closing price of GOOG stock yesterday?". The LLM can then easily and accurately answer based on the provided, up-to-date context.</p>
-                        <p class="pt-2"><em><a href="#topic-13" class="text-[#8A6D53] hover:underline">→ See more on Retrieval Augmented Generation</a></em></p>
-                    </div>
-                </div>
-            </div>
-            `
         }
     };
 
