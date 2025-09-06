@@ -107,23 +107,27 @@
 
     <!-- Sidebar Navigation -->
     <aside id="sidebar" class="w-64 flex-shrink-0 p-6 overflow-y-auto h-screen sticky top-0 border-r border-gray-200">
-        <h2 class="text-xl font-bold text-[#8A6D53] mb-2 px-4">DRL Guide</h2>
-        <a href="https://jeringk.github.io/aiml" class="block text-sm text-[#8A6D53] hover:underline mb-4 px-4">← Back to AIML Home</a>
+        <h2 class="text-xl font-bold text-[#8A6D53] mb-6 px-4">DRL Guide</h2>
         <nav id="sidebar-nav" class="space-y-1">
             <!-- Navigation items will be injected by JS -->
         </nav>
     </aside>
 
     <!-- Main Content -->
-    <main id="main-content" class="flex-1 p-8 lg:p-12 overflow-y-auto">
-        <!-- Content sections will be injected here -->
+    <main class="flex-1 p-8 lg:p-12 overflow-y-auto">
+        <header class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+            <h2 id="main-title" class="text-3xl font-bold text-gray-900"></h2>
+            <a href="https://jeringk.github.io/aiml" class="text-sm font-medium text-[#8A6D53] hover:underline">Home</a>
+        </header>
+        <div id="content-container">
+            <!-- Content sections will be injected here -->
+        </div>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const topics = [
                 { id: 'intro-rl', title: 'Introduction to RL', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Introduction to Reinforcement Learning (RL)</h2>
                     <p class="text-lg text-gray-700 mb-6">Reinforcement Learning is an area of machine learning where an agent learns to make decisions by performing actions in an environment to maximize cumulative reward. Unlike supervised learning, the agent is not told which actions to take, but instead must discover which actions yield the most reward by trying them.</p>
                     <div class="card p-6 rounded-lg">
                         <h3 class="text-xl font-semibold text-gray-900 mb-3">The Agent-Environment Loop</h3>
@@ -150,7 +154,6 @@
                     </div>
                 `},
                 { id: 'elements-rl', title: 'Elements of RL', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Elements of Reinforcement Learning</h2>
                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
                             <h3 class="text-xl font-semibold text-gray-900 mb-2">Policy (π)</h3>
@@ -186,7 +189,6 @@
                     </div>
                 `},
                 { id: 'mab', title: 'Multi-Armed Bandit', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Multi-Armed Bandit Problem</h2>
                     <p class="text-lg text-gray-700 mb-6">The MAB problem exemplifies the exploration-exploitation tradeoff. The agent must choose between multiple options (arms) to maximize total reward, without knowing which option is best. It must 'exploit' the best-known option but also 'explore' others to find potentially better ones.</p>
                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
@@ -232,7 +234,6 @@
                     </div>
                 `},
                 { id: 'mdp', title: 'Markov Decision Processes', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">(Finite) Markov Decision Processes (MDP)</h2>
                     <p class="text-lg text-gray-700 mb-6">An MDP is a formal framework for RL problems. A key assumption is the Markov Property: the future is independent of the past given the present. An MDP is defined by a tuple $(S, A, P, R, \\gamma)$.</p>
                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
@@ -270,7 +271,6 @@
                     </div>
                 `},
                 { id: 'dp', title: 'Dynamic Programming', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Dynamic Programming in RL</h2>
                     <p class="text-lg text-gray-700 mb-6">Dynamic Programming (DP) refers to a collection of algorithms that can compute optimal policies given a perfect model of the environment as a Markov Decision Process (MDP). The key idea is to use value functions to organize and structure the search for good policies. DP methods are powerful but are limited by the need for a full model and their computational expense.</p>
                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
@@ -327,7 +327,6 @@
                     </div>
                 `},
                 { id: 'mc', title: 'Monte Carlo Methods', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Monte Carlo Methods</h2>
                     <p class="text-lg text-gray-700 mb-6">Monte Carlo (MC) methods are a class of model-free algorithms that learn directly from episodes of experience. Unlike DP, they do not require a model of the environment's dynamics. MC methods wait until the end of an episode to make value-function updates, based on the actual observed return.</p>
                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
@@ -385,7 +384,6 @@
                     </div>
                 `},
                 { id: 'td', title: 'Temporal Difference Learning', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Temporal Difference (TD) Learning</h2>
                     <p class="text-lg text-gray-700 mb-6">TD learning is a central and novel idea in RL. It's a combination of Monte Carlo and Dynamic Programming. Like MC, it learns from raw experience without a model. Like DP, it bootstraps—it updates value estimates based on other learned estimates, without waiting for the final outcome.</p>
                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
@@ -446,8 +444,7 @@
                     </div>
                 `},
                  { id: 'func-approx', title: 'Function Approximation', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Function Approximation</h2>
-                     <p class="text-lg text-gray-700 mb-6">For problems with large or continuous state spaces, we approximate the value function with a parameterized function $\\hat{v}(s, \\mathbf{w})$. This allows generalization across states.</p>
+                    <p class="text-lg text-gray-700 mb-6">For problems with large or continuous state spaces, we approximate the value function with a parameterized function $\\hat{v}(s, \\mathbf{w})$. This allows generalization across states.</p>
                      <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
                             <h3 class="text-xl font-semibold text-gray-900 mb-2">Feature Construction & Tile Coding</h3>
@@ -477,7 +474,6 @@
                     </div>
                 `},
                  { id: 'deep-rl', title: 'Deep Reinforcement Learning', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Deep Reinforcement Learning</h2>
                      <p class="text-lg text-gray-700 mb-6">Deep RL uses deep neural networks as function approximators, allowing agents to learn from high-dimensional sensory inputs like images.</p>
                      <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
@@ -508,7 +504,6 @@
                     </div>
                 `},
                 { id: 'policy-grad', title: 'Policy Gradient Methods', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Policy Gradient Methods</h2>
                     <p class="text-lg text-gray-700 mb-6">These methods directly parameterize and optimize the policy $\\pi(a|s, \\mathbf{\\theta})$. They perform gradient ascent on an objective function $J(\\mathbf{\\theta})$ to find the best policy parameters.</p>
                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
@@ -540,7 +535,6 @@
                     </div>
                 `},
                 { id: 'mcts', title: 'MCTS', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Monte-Carlo Tree Search (MCTS)</h2>
                     <div class="card p-6 rounded-lg">
                         <p class="text-gray-600">A powerful planning algorithm that combines the precision of tree search with the generality of random sampling. MCTS doesn't require a model of the environment; instead, it builds a search tree step-by-step based on the outcomes of simulated episodes (rollouts). The process iterates through four main steps:</p>
                         <ul class="list-decimal list-inside text-gray-600 space-y-2 mt-4">
@@ -577,7 +571,6 @@
                     </div>
                 `},
                 { id: 'alphago', title: 'AlphaGo & MuZero', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">AlphaGo, AlphaGo Zero, & MuZero</h2>
                     <div class="card p-6 rounded-lg">
                         <p class="text-gray-600">These landmark systems from DeepMind showcase the power of deep RL and search.
                             <br>• <strong>AlphaGo:</strong> Famously defeated world champion Lee Sedol. It used two neural networks—a "policy network" to select moves and a "value network" to predict the winner—trained on human expert games. These networks guided a powerful MCTS algorithm.
@@ -599,7 +592,6 @@
                     </div>
                 `},
                 { id: 'imitation-learning', title: 'Imitation Learning', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Imitation Learning</h2>
                     <div class="card p-6 rounded-lg">
                         <p class="text-gray-600">A family of methods where an agent learns by observing an expert, rather than through its own trial-and-error. This is useful when exploration is costly, dangerous, or when rewards are hard to define.
                            <br>• <strong>Behavioral Cloning:</strong> The simplest approach. It treats imitation as a supervised learning problem, training a policy network to map states to the actions an expert took in those states. Its main weakness is the "covariate shift" problem: if the agent enters a state the expert never saw, it may not know how to recover.
@@ -620,7 +612,6 @@
                     </div>
                 `},
                 { id: 'marl', title: 'Multi-Agent RL', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Multi-Agent RL (MARL)</h2>
                     <div class="card p-6 rounded-lg">
                         <p class="text-gray-600">MARL extends RL to systems with multiple agents that learn and act in a shared environment. This introduces significant challenges beyond single-agent RL:
                             <br>• <strong>Non-stationarity:</strong> As other agents learn and change their policies, the environment effectively becomes non-stationary from the perspective of any one agent. What was a good action yesterday might be a bad action today.
@@ -643,7 +634,6 @@
                     </div>
                 `},
                 { id: 'hitl', title: 'Human-in-the-Loop RL', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Human-in-the-Loop (HITL) Learning</h2>
                     <div class="card p-6 rounded-lg">
                         <p class="text-gray-600">Also known as Interactive RL, this approach integrates human feedback into the agent's learning loop. This is valuable when environmental rewards are sparse or when we want to align the agent's behavior with complex human preferences. The feedback can take many forms:</p>
                          <ul class="list-disc list-inside text-gray-600 space-y-2 mt-4">
@@ -666,7 +656,6 @@
                     </div>
                 `},
                 { id: 'safety', title: 'Safety in RL', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Safety in RL</h2>
                     <div class="card p-6 rounded-lg">
                         <p class="text-gray-600">Ensuring RL agents behave safely and reliably is critical for real-world deployment in areas like robotics, autonomous driving, and healthcare. The goal is to prevent the agent from causing harm or entering catastrophic states, especially during its initial exploration phase. Key approaches include:
                             <br>• <strong>Constrained MDPs:</strong> The problem is formulated to maximize a reward function while satisfying explicit safety constraints (e.g., "keep the robot's temperature below a certain threshold").
@@ -688,7 +677,6 @@
                     </div>
                 `},
                 { id: 'sample-questions', title: 'Sample Questions', content: `
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Sample Exam Questions</h2>
                     <div class="space-y-8">
                         <!-- Question 1 -->
                         <div class="card p-6 rounded-lg">
@@ -849,7 +837,8 @@
                 `},
             ];
             
-            const mainContent = document.getElementById('main-content');
+            const mainContentContainer = document.getElementById('content-container');
+            const mainTitle = document.getElementById('main-title');
             const sidebarNav = document.getElementById('sidebar-nav');
             const topicHierarchy = {
                 'Introduction': ['intro-rl', 'elements-rl'],
@@ -882,7 +871,7 @@
                         section.id = topic.id;
                         section.className = 'content-section';
                         section.innerHTML = topic.content;
-                        mainContent.appendChild(section);
+                        mainContentContainer.appendChild(section);
                     }
                 });
             });
@@ -901,6 +890,11 @@
 
             function switchTab(targetId) {
                 if (!document.getElementById(targetId)) return;
+
+                const currentTopic = topics.find(t => t.id === targetId);
+                if (currentTopic) {
+                    mainTitle.textContent = currentTopic.title;
+                }
 
                 contentSections.forEach(section => {
                     section.classList.toggle('active', section.id === targetId);
@@ -925,7 +919,7 @@
                 if (targetId === 'mcts') initMCTSAnimation();
             }
 
-            mainContent.addEventListener('click', (e) => {
+            mainContentContainer.addEventListener('click', (e) => {
                  if (e.target.classList.contains('solution-link')) {
                     e.preventDefault();
                     const targetId = e.target.dataset.target;
@@ -944,7 +938,7 @@
             });
 
             // Quiz Handler using Event Delegation
-            mainContent.addEventListener('click', (e) => {
+            mainContentContainer.addEventListener('click', (e) => {
                 if (e.target.classList.contains('quiz-submit-btn')) {
                     const quizContainer = e.target.closest('.quiz-container');
                     const quizId = quizContainer.dataset.quizId;
