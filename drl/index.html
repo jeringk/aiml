@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Reinforcement Learning Canvas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FAF8F5; /* Warm off-white */
+            color: #3D4451; /* Soft dark gray for text */
+        }
+        aside {
+            background-color: #F5F2ED; /* Beige sidebar */
+        }
+        .sidebar-item {
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-item.active {
+            background-color: #E9E4DB; /* Darker beige */
+            color: #000000;
+            border-left-color: #4A90E2; /* Accent blue */
+            font-weight: 600;
+        }
+        .sidebar-item:not(.active):hover {
+            background-color: #F0ECE5; /* Lighter beige for hover */
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #EAEAEA;
+        }
+        canvas {
+            background-color: #fcfcfc;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        .formula {
+            background-color: #F5F2ED;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            text-align: center;
+            font-size: 1.1rem;
+            overflow-x: auto;
+        }
+        .quiz-feedback {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+        .quiz-feedback.correct {
+            background-color: #dcfce7; /* green-100 */
+            color: #166534; /* green-800 */
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+        }
+        .btn-primary {
+             background-color: #4A90E2;
+             color: white;
+        }
+        .btn-primary:hover {
+            background-color: #357ABD;
+        }
+         .btn-secondary {
+            background-color: #7DBA31;
+             color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #689D2A;
+        }
+        .btn-danger {
+            background-color: #D0021B;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #B00216;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 flex-shrink-0 p-6 overflow-y-auto h-screen sticky top-0 border-r border-gray-200">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6 px-4">RL Topics</h1>
+        <nav id="sidebar-nav" class="space-y-1">
+            <!-- Navigation items will be injected by JS -->
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content" class="flex-1 p-8 lg:p-12 overflow-y-auto">
+        <!-- Content sections will be injected here -->
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const topics = [
+                { id: 'intro-rl', title: 'Introduction to RL', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Introduction to Reinforcement Learning (RL)</h2>
+                    <p class="text-lg text-gray-700 mb-6">Reinforcement Learning is an area of machine learning where an agent learns to make decisions by performing actions in an environment to maximize cumulative reward. Unlike supervised learning, the agent is not told which actions to take, but instead must discover which actions yield the most reward by trying them.</p>
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">The Agent-Environment Loop</h3>
+                        <p class="text-gray-600 mb-4">The core of RL is the interaction loop between the agent and the environment. At each step, the agent observes a state, takes an action, receives a reward, and observes the next state. This process continues, and the agent's goal is to learn a strategy, or policy, that maximizes its total reward over time.</p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2">
+                            <li><strong>Agent:</strong> The learner or decision-maker.</li>
+                            <li><strong>Environment:</strong> Everything the agent interacts with.</li>
+                            <li><strong>Action (A<sub>t</sub>):</strong> A choice made by the agent.</li>
+                            <li><strong>State (S<sub>t</sub>):</strong> The agent's current situation.</li>
+                            <li><strong>Reward (R<sub>t</sub>):</strong> Immediate feedback from the environment.</li>
+                        </ul>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="intro-rl-quiz" data-correct-answer="b">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What is the primary goal of a Reinforcement Learning agent?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="intro-rl-quiz" value="a" class="mr-2"> Minimize computation time.</label>
+                            <label class="flex items-center"><input type="radio" name="intro-rl-quiz" value="b" class="mr-2"> Maximize cumulative reward.</label>
+                            <label class="flex items-center"><input type="radio" name="intro-rl-quiz" value="c" class="mr-2"> Classify data accurately.</label>
+                            <label class="flex items-center"><input type="radio" name="intro-rl-quiz" value="d" class="mr-2"> Follow a predefined path.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'elements-rl', title: 'Elements of RL', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Elements of Reinforcement Learning</h2>
+                    <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Policy (π)</h3>
+                            <p class="text-gray-600 mb-4">The agent's strategy for selecting actions. It can be deterministic (a specific action for a state) or stochastic (a probability distribution over actions).</p>
+                            <div class="formula" data-katex="a = \\pi(s) \\quad \\text{(deterministic)}"></div>
+                            <div class="formula mt-2" data-katex="\\pi(a|s) = P[A_t=a | S_t=s] \\quad \\text{(stochastic)}"></div>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Reward Signal (R)</h3>
+                            <p class="text-gray-600">A scalar feedback from the environment indicating the immediate benefit of an action. The agent's sole objective is to maximize the total reward it receives.</p>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Value Function (V, Q)</h3>
+                            <p class="text-gray-600">The expected long-term return from a state or state-action pair, following a particular policy. It quantifies the "goodness" of a state. The return $G_t$ is the sum of discounted future rewards.</p>
+                            <div class="formula" data-katex="\\begin{aligned}G_t &= R_{t+1} + \\gamma R_{t+2} + \\dots \\\\ &= \\sum_{k=0}^{\\infty} \\gamma^k R_{t+k+1}\\end{aligned}"></div>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Model of the Environment</h3>
+                            <p class="text-gray-600">The agent’s representation of how the environment behaves. It predicts state transitions ($P(s'|s,a)$) and rewards ($R(s,a,s')$). RL methods can be model-based or model-free.</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="elements-rl-quiz" data-correct-answer="c">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">Which element of RL defines the agent's strategy or "brain"?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="elements-rl-quiz" value="a" class="mr-2"> Reward Signal</label>
+                            <label class="flex items-center"><input type="radio" name="elements-rl-quiz" value="b" class="mr-2"> Value Function</label>
+                            <label class="flex items-center"><input type="radio" name="elements-rl-quiz" value="c" class="mr-2"> Policy</label>
+                            <label class="flex items-center"><input type="radio" name="elements-rl-quiz" value="d" class="mr-2"> Model</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'mab', title: 'Multi-Armed Bandit', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Multi-Armed Bandit Problem</h2>
+                    <p class="text-lg text-gray-700 mb-6">The MAB problem exemplifies the exploration-exploitation tradeoff. The agent must choose between multiple options (arms) to maximize total reward, without knowing which option is best. It must 'exploit' the best-known option but also 'explore' others to find potentially better ones.</p>
+                    <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Action-Value Estimation & ε-Greedy</h3>
+                            <p class="text-gray-600">We estimate the value of each action $Q(a)$ by averaging rewards. The ε-Greedy policy balances exploring random actions with exploiting the current best action.</p>
+                            <div class="formula" data-katex="Q_{n+1} = Q_n + \\frac{1}{n}(R_n - Q_n)"></div>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">Bandit Gradient Algorithm</h3>
+                             <p class="text-gray-600">Instead of estimating action values, this method learns a preference $H_t(a)$ for each action. Preferences are updated via stochastic gradient ascent. Actions are then selected via a softmax distribution over preferences.</p>
+                             <div class="formula" data-katex="H_{t+1}(A_t) = H_t(A_t) + \\alpha(R_t - \\bar{R}_t)(1 - \\pi_t(A_t))"></div>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">Associative Search (Contextual Bandits)</h3>
+                             <p class="text-gray-600">This is an extension where the agent is given a "context" or state before making a choice. The goal is to learn the best action for each context, effectively learning a policy $\\pi(a|s)$ instead of just finding the single best action overall.</p>
+                        </div>
+                    </div>
+                    <div class="card p-6 rounded-lg mt-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-4">Interactive Bandit Simulation (ε-Greedy)</h3>
+                        <div class="flex items-center space-x-4 mb-4">
+                            <label for="epsilon-slider" class="text-gray-600">Exploration Rate (ε):</label>
+                            <input type="range" id="epsilon-slider" min="0" max="1" step="0.01" value="0.1" class="w-48">
+                            <span id="epsilon-value" class="font-mono text-blue-600">0.10</span>
+                            <button id="reset-bandit-btn" class="btn-danger font-semibold py-2 px-4 rounded">Reset</button>
+                        </div>
+                        <div id="bandit-arms-container" class="flex justify-around items-end h-64 p-4 bg-gray-50 rounded-lg"></div>
+                        <div class="mt-4 grid grid-cols-2 gap-4 text-center">
+                            <div><p class="text-gray-600">Total Reward</p><p id="bandit-total-reward" class="text-2xl font-bold text-gray-900">0</p></div>
+                            <div><p class="text-gray-600">Total Pulls</p><p id="bandit-total-pulls" class="text-2xl font-bold text-gray-900">0</p></div>
+                        </div>
+                    </div>
+                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="mab-quiz" data-correct-answer="b">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What fundamental tradeoff is the Multi-Armed Bandit problem designed to illustrate?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="mab-quiz" value="a" class="mr-2"> Bias vs. Variance</label>
+                            <label class="flex items-center"><input type="radio" name="mab-quiz" value="b" class="mr-2"> Exploration vs. Exploitation</label>
+                            <label class="flex items-center"><input type="radio" name="mab-quiz" value="c" class="mr-2"> Speed vs. Accuracy</label>
+                            <label class="flex items-center"><input type="radio" name="mab-quiz" value="d" class="mr-2"> Model-based vs. Model-free</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'mdp', title: 'Markov Decision Processes', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">(Finite) Markov Decision Processes (MDP)</h2>
+                    <p class="text-lg text-gray-700 mb-6">An MDP is a formal framework for RL problems. A key assumption is the Markov Property: the future is independent of the past given the present. An MDP is defined by a tuple $(S, A, P, R, \\gamma)$.</p>
+                    <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Value Functions & Bellman Equations</h3>
+                            <p class="text-gray-600">The Bellman expectation equation expresses the value of a state in terms of the values of successor states, creating a recursive relationship:</p>
+                            <div class="formula" data-katex="\\begin{aligned}v_\\pi(s) = \\sum_{a} \\pi(a|s) \\sum_{s', r} & p(s', r | s, a) \\\\ & \\cdot [r + \\gamma v_\\pi(s')].\\end{aligned}"></div>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Optimal Value Functions & Policies</h3>
+                            <p class="text-gray-600">An optimal policy $\\pi_*$ is one that maximizes the expected return from any state. There is always at least one such policy. Optimal policies share the same optimal value functions, $v_*(s)$ and $q_*(s,a)$. The Bellman optimality equations show how they relate:</p>
+                            <div class="formula" data-katex="v_*(s) = \\max_a \\sum_{s', r} p(s', r | s, a) [r + \\gamma v_*(s')]"></div>
+                        </div>
+                    </div>
+                    <div class="card p-6 rounded-lg mt-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-4">Interactive Gridworld</h3>
+                        <p class="text-gray-600 mb-4">This Gridworld is an MDP. The agent learns the value of each state by iteratively applying the Bellman equation in an algorithm called Value Iteration.</p>
+                        <canvas id="gridworld-canvas" width="400" height="400"></canvas>
+                        <div class="mt-4 flex space-x-4">
+                            <button id="gridworld-vi-btn" class="btn-primary font-semibold py-2 px-4 rounded">Run Value Iteration</button>
+                            <button id="gridworld-reset-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded">Reset</button>
+                        </div>
+                         <div class="mt-4"><p id="gridworld-iterations" class="text-gray-600">Iterations: 0</p></div>
+                    </div>
+                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="mdp-quiz" data-correct-answer="c">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">The Bellman equation provides a recursive relationship for which of the following?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="mdp-quiz" value="a" class="mr-2"> The policy</label>
+                            <label class="flex items-center"><input type="radio" name="mdp-quiz" value="b" class="mr-2"> The reward signal</label>
+                            <label class="flex items-center"><input type="radio" name="mdp-quiz" value="c" class="mr-2"> The value function</label>
+                            <label class="flex items-center"><input type="radio" name="mdp-quiz" value="d" class="mr-2"> The state transitions</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'dp', title: 'Dynamic Programming', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Dynamic Programming in RL</h2>
+                    <p class="text-lg text-gray-700 mb-6">Dynamic Programming (DP) refers to a collection of algorithms that can compute optimal policies given a perfect model of the environment as a Markov Decision Process (MDP). The key idea is to use value functions to organize and structure the search for good policies. DP methods are powerful but are limited by the need for a full model and their computational expense.</p>
+                    <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Policy Iteration</h3>
+                            <p class="text-gray-600">This method finds an optimal policy by alternating between two processes: policy evaluation and policy improvement.</p>
+                            <ul class="list-decimal list-inside text-gray-600 space-y-2 mt-4">
+                                <li><strong>Policy Evaluation:</strong> For the current policy $\\pi$, we compute the state-value function $v_\\pi$. This is done by iteratively applying the Bellman expectation equation until the values converge. For each state $s$:</li>
+                                <div class="formula" data-katex="v_{k+1}(s) = \\sum_{a} \\pi(a|s) \\sum_{s', r} p(s', r | s, a) [r + \\gamma v_k(s')]"></div>
+                                <li><strong>Policy Improvement:</strong> Once we have $v_\\pi$, we improve the policy by acting greedily with respect to it. For each state $s$, we find the action that maximizes the expected return:</li>
+                                <div class="formula" data-katex="\\pi'(s) = \\arg\\max_a \\sum_{s', r} p(s', r | s, a) [r + \\gamma v_\\pi(s')]"></div>
+                            </ul>
+                            <p class="text-gray-600 mt-4">This process is guaranteed to converge to an optimal policy.</p>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Value Iteration</h3>
+                            <p class="text-gray-600">Value Iteration combines policy evaluation and improvement into a single step. It directly finds the optimal value function by iteratively applying the Bellman Optimality update rule. The process is simpler but each iteration is more complex than in policy evaluation.</p>
+                            <div class="formula" data-katex="v_{k+1}(s) = \\max_a \\sum_{s', r} p(s', r | s, a) [r + \\gamma v_k(s')]"></div>
+                            <p class="text-gray-600 mt-4">Once the value function converges to $v_*$, the optimal policy can be extracted by choosing the action that maximizes the expected return in each state.</p>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Generalized Policy Iteration (GPI)</h3>
+                            <p class="text-gray-600">GPI is the general idea of letting policy evaluation and policy improvement processes interact. One process learns the value function for the current policy, and the other improves the policy based on the current value function. Most RL algorithms can be framed as GPI, where the two processes may not fully complete before the other begins (e.g., updating values only once before improving the policy).</p>
+                            <div class="text-center my-4">
+                                <svg width="250" height="200" class="mx-auto">
+                                    <defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#4A90E2"/></marker></defs>
+                                    <ellipse cx="125" cy="50" rx="60" ry="25" fill="#E9E4DB" stroke="#3D4451"/>
+                                    <text x="125" y="55" text-anchor="middle" font-size="16">Policy π</text>
+                                    <ellipse cx="125" cy="150" rx="60" ry="25" fill="#E9E4DB" stroke="#3D4451"/>
+                                    <text x="125" y="155" text-anchor="middle" font-size="16">Value V</text>
+                                    <path d="M 125 75 Q 175 100 125 125" stroke="#4A90E2" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                                    <text x="165" y="95" fill="#4A90E2" font-size="12">Evaluation</text>
+                                    <path d="M 125 125 Q 75 100 125 75" stroke="#D0021B" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                                    <text x="80" y="95" fill="#D0021B" font-size="12" text-anchor="end">Improvement</text>
+                                </svg>
+                                <p class="text-sm text-gray-500">The policy and value function interact until they are optimal and consistent.</p>
+                            </div>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Efficiency of Dynamic Programming</h3>
+                            <p class="text-gray-600">While DP methods are guaranteed to find optimal policies, their practicality is limited. They require a full model of the environment's dynamics, which is often unavailable. Furthermore, they suffer from the <strong>curse of dimensionality</strong>: the state space (and thus the computation required) grows exponentially with the number of state variables. This makes them infeasible for problems with large or continuous state spaces.</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="dp-quiz" data-correct-answer="a">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What is a key requirement for using Dynamic Programming to solve an RL problem?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="dp-quiz" value="a" class="mr-2"> A perfect model of the environment (MDP).</label>
+                            <label class="flex items-center"><input type="radio" name="dp-quiz" value="b" class="mr-2"> A continuous state space.</label>
+                            <label class="flex items-center"><input type="radio" name="dp-quiz" value="c" class="mr-2"> No knowledge of the environment.</label>
+                            <label class="flex items-center"><input type="radio" name="dp-quiz" value="d" class="mr-2"> Experience from complete episodes.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'mc', title: 'Monte Carlo Methods', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Monte Carlo Methods</h2>
+                    <p class="text-lg text-gray-700 mb-6">Monte Carlo (MC) methods are a class of model-free algorithms that learn directly from episodes of experience. Unlike DP, they do not require a model of the environment's dynamics. MC methods wait until the end of an episode to make value-function updates, based on the actual observed return.</p>
+                    <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Monte Carlo Prediction (Policy Evaluation)</h3>
+                            <p class="text-gray-600">MC Prediction is used to estimate $v_\\pi(s)$ for a given policy $\\pi$. The value of a state is estimated by averaging the returns that have followed visits to that state. There are two main variants:</p>
+                             <ul class="list-disc list-inside text-gray-600 space-y-2 mt-4">
+                                <li><strong>First-visit MC:</strong> Averages the returns for the first time a state $s$ is visited in each episode.</li>
+                                <li><strong>Every-visit MC:</strong> Averages the returns for every visit to a state $s$ in each episode.</li>
+                             </ul>
+                             <p class="text-gray-600 mt-2">The update rule is simple: after an episode provides a return $G_t$ following a visit to $S_t$:</p>
+                            <div class="formula" data-katex="V(S_t) \\leftarrow V(S_t) + \\alpha (G_t - V(S_t))"></div>
+                            <p class="text-gray-600 mt-2">Where $\\alpha$ is a constant step-size parameter.</p>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Monte Carlo Control</h3>
+                            <p class="text-gray-600">MC Control uses the GPI framework to find an optimal policy. It learns action-values $q_\\pi(s,a)$ instead of state-values to make policy improvement possible (since we don't have a model). The loop is similar to Policy Iteration:</p>
+                            <ol class="list-decimal list-inside text-gray-600 space-y-1 mt-2">
+                                <li>Run an episode following the current policy $\\pi$.</li>
+                                <li>For each state-action pair $(s,a)$ in the episode, update its Q-value by averaging returns.</li>
+                                <li>Improve the policy by making it $\\epsilon$-greedy with respect to the new Q-values.</li>
+                            </ol>
+                            <p class="text-gray-600 mt-2">To ensure sufficient exploration, we can use an $\\epsilon$-greedy policy or exploring starts.</p>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Off-Policy Learning via Importance Sampling</h3>
+                            <p class="text-gray-600">Off-policy methods learn about a target policy $\\pi$ while following a different, more exploratory behavior policy $b$. This is crucial for control problems. To correct for the fact that the data comes from $b$, we weight the returns by the <strong>importance sampling ratio</strong>, which is the relative probability of the trajectory under the two policies:</p>
+                            <div class="formula" data-katex="\\rho_{t:T-1} = \\prod_{k=t}^{T-1} \\frac{\\pi(A_k|S_k)}{b(A_k|S_k)}"></div>
+                            <p class="text-gray-600 mt-2"><strong>Weighted Importance Sampling</strong> is often preferred in practice because it has lower variance. It uses a weighted average for the value function update:</p>
+                            <div class="formula" data-katex="V(S_t) \\leftarrow V(S_t) + \\frac{W_t}{C(S_t)}(G_t - V(S_t))"></div>
+                            <p class="text-gray-600 mt-2 text-center">where $C(S_t)$ is the sum of weights for state $S_t$.</p>
+                        </div>
+                    </div>
+                    <div class="card p-6 rounded-lg mt-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-4">Interactive MC Example: Blackjack</h3>
+                        <p class="text-gray-600 mb-4">Here, an agent learns to play Blackjack using Monte Carlo. It follows a simple policy (stick on 20 or 21, hit otherwise) and learns the value of each state by averaging returns over many games. The state is defined by the player's sum, the dealer's showing card, and whether the player has a usable ace.</p>
+                        <div class="flex items-center space-x-4 mb-4">
+                            <button id="blackjack-play1-btn" class="btn-primary font-semibold py-2 px-4 rounded">Play 1 Game</button>
+                            <button id="blackjack-play100-btn" class="btn-secondary font-semibold py-2 px-4 rounded">Play 100 Games</button>
+                            <button id="blackjack-reset-btn" class="btn-danger font-semibold py-2 px-4 rounded">Reset</button>
+                            <span id="blackjack-games-played" class="text-gray-600">Games Played: 0</span>
+                        </div>
+                        <canvas id="blackjack-canvas" width="600" height="350"></canvas>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="mc-quiz" data-correct-answer="c">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What is the main advantage of Monte Carlo methods over Dynamic Programming?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="mc-quiz" value="a" class="mr-2"> They are guaranteed to be faster.</label>
+                            <label class="flex items-center"><input type="radio" name="mc-quiz" value="b" class="mr-2"> They update values after every step.</label>
+                            <label class="flex items-center"><input type="radio" name="mc-quiz" value="c" class="mr-2"> They do not require a model of the environment.</label>
+                            <label class="flex items-center"><input type="radio" name="mc-quiz" value="d" class="mr-2"> They have lower variance.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'td', title: 'Temporal Difference Learning', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Temporal Difference (TD) Learning</h2>
+                    <p class="text-lg text-gray-700 mb-6">TD learning is a combination of Monte Carlo and Dynamic Programming. Like MC, it learns from experience without a model. Like DP, it bootstraps, updating its estimates based on other learned estimates without waiting for the end of an episode.</p>
+                    <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">TD Prediction</h3>
+                            <p class="text-gray-600">The simplest TD method, TD(0), updates the value of a state based on the reward received and the estimated value of the *next* state. This is the core of bootstrapping.</p>
+                             <div class="formula" data-katex="V(S_t) \\leftarrow V(S_t) + \\alpha [R_{t+1} + \\gamma V(S_{t+1}) - V(S_t)]"></div>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">SARSA (On-policy) vs Q-Learning (Off-policy)</h3>
+                            <p class="text-gray-600"><strong>SARSA</strong> learns the action-value function based on the policy being followed. <strong>Q-Learning</strong> learns the optimal action-value function, regardless of the agent's actions, by using the greedy action in the next state for its update.</p>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">N-step TD Methods</h3>
+                             <p class="text-gray-600">These methods unify MC and TD learning by looking ahead $n$ steps to form the update target. When $n=1$, it's standard TD. As $n \\rightarrow \\infty$, it becomes a Monte Carlo method. This allows for a spectrum of algorithms that can trade off bias and variance.</p>
+                        </div>
+                    </div>
+                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="td-quiz" data-correct-answer="b">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What does it mean for a TD method like Q-Learning to be "off-policy"?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="td-quiz" value="a" class="mr-2"> It can only learn in environments with no policies.</label>
+                            <label class="flex items-center"><input type="radio" name="td-quiz" value="b" class="mr-2"> It learns the value of the optimal policy, regardless of the policy it's following.</label>
+                            <label class="flex items-center"><input type="radio" name="td-quiz" value="c" class="mr-2"> It updates its policy after every single action.</label>
+                            <label class="flex items-center"><input type="radio" name="td-quiz" value="d" class="mr-2"> It requires a model of the environment's policy.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                 { id: 'func-approx', title: 'Function Approximation', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Function Approximation</h2>
+                     <p class="text-lg text-gray-700 mb-6">For problems with large or continuous state spaces, we approximate the value function with a parameterized function $\\hat{v}(s, \\mathbf{w})$. This allows generalization across states.</p>
+                     <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Feature Construction & Tile Coding</h3>
+                            <p class="text-gray-600">For linear methods, we must construct a feature vector $\\mathbf{x}(s)$ for each state. <strong>Tile coding</strong> is a popular method for continuous spaces, where the space is overlaid with multiple tilings. Each tile acts as a binary feature, allowing for coarse but effective generalization.</p>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Semi-Gradient TD Methods</h3>
+                            <p class="text-gray-600">We use gradient-descent to update the function's weight vector $\\mathbf{w}$. It's called "semi-gradient" because it ignores the effect of changing $\\mathbf{w}$ on the TD target, but works well in practice.</p>
+                            <div class="formula" data-katex="\\mathbf{w} \\leftarrow \\mathbf{w} + \\alpha [R + \\gamma \\hat{v}(S', \\mathbf{w}) - \\hat{v}(S, \\mathbf{w})] \\nabla \\hat{v}(S, \\mathbf{w})"></div>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Off-Policy Function Approximation</h3>
+                            <p class="text-gray-600">Combining off-policy methods (like Q-Learning) with function approximation is challenging. The combination of bootstrapping, off-policy training, and function approximation is known as the "deadly triad" and can lead to instability and divergence.</p>
+                        </div>
+                    </div>
+                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="fa-quiz" data-correct-answer="b">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">Why is function approximation necessary in some RL problems?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="fa-quiz" value="a" class="mr-2"> To make the rewards higher.</label>
+                            <label class="flex items-center"><input type="radio" name="fa-quiz" value="b" class="mr-2"> To handle very large or continuous state spaces.</label>
+                            <label class="flex items-center"><input type="radio" name="fa-quiz" value="c" class="mr-2"> To guarantee finding the optimal policy.</label>
+                            <label class="flex items-center"><input type="radio" name="fa-quiz" value="d" class="mr-2"> To eliminate the need for a discount factor.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                 { id: 'deep-rl', title: 'Deep Reinforcement Learning', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Deep Reinforcement Learning</h2>
+                     <p class="text-lg text-gray-700 mb-6">Deep RL uses deep neural networks as function approximators, allowing agents to learn from high-dimensional sensory inputs like images.</p>
+                     <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Deep Q-Network (DQN)</h3>
+                            <p class="text-gray-600">DQN stabilized learning by using two key techniques: Experience Replay and Fixed Target Networks. Experience replay stores transitions and samples them randomly to break correlations. A fixed target network provides stable targets for the Q-value updates.</p>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Double DQN</h3>
+                            <p class="text-gray-600">Standard DQN suffers from overestimation bias because it uses the same network to both select the best action and evaluate its value. Double DQN decouples these steps: the main network selects the best action, and the target network evaluates it, reducing the bias.</p>
+                            <div class="formula" data-katex="Y_t^{\\text{DoubleDQN}} = R_{t+1} + \\gamma Q(S_{t+1}, \\arg\\max_{a'} Q(S_{t+1}, a'; \\theta_t); \\theta_t^-)"></div>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Rainbow</h3>
+                            <p class="text-gray-600">Rainbow is not a single new algorithm, but a combination of seven improvements to DQN, including Double DQN, Prioritized Replay, and Dueling Networks. Together, they achieve state-of-the-art performance on Atari benchmarks.</p>
+                        </div>
+                    </div>
+                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="drl-quiz" data-correct-answer="c">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What was a key innovation of the Deep Q-Network (DQN) that stabilized training?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="drl-quiz" value="a" class="mr-2"> Using a linear function approximator.</label>
+                            <label class="flex items-center"><input type="radio" name="drl-quiz" value="b" class="mr-2"> Learning the policy directly.</label>
+                            <label class="flex items-center"><input type="radio" name="drl-quiz" value="c" class="mr-2"> Using Experience Replay and a target network.</label>
+                            <label class="flex items-center"><input type="radio" name="drl-quiz" value="d" class="mr-2"> Removing the discount factor.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'policy-grad', title: 'Policy Gradient Methods', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Policy Gradient Methods</h2>
+                    <p class="text-lg text-gray-700 mb-6">These methods directly parameterize and optimize the policy $\\pi(a|s, \\mathbf{\\theta})$. They perform gradient ascent on an objective function $J(\\mathbf{\\theta})$ to find the best policy parameters.</p>
+                    <div class="space-y-6">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Policy Gradient Theorem</h3>
+                            <p class="text-gray-600">This theorem provides a theoretical foundation by giving an analytic expression for the gradient of the performance objective $J(\\mathbf{\\theta})$, which allows us to perform gradient ascent.</p>
+                            <div class="formula" data-katex="\\nabla J(\\mathbf{\\theta}) \\propto \\sum_s d(s) \\sum_a q_\\pi(s,a) \\nabla \\pi(a|s, \\mathbf{\\theta})"></div>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">REINFORCE with Baseline</h3>
+                            <p class="text-gray-600">The basic REINFORCE algorithm has high variance. We can significantly reduce this by subtracting a learned baseline $b(s)$ (often the value function $V(s)$) from the return $G_t$. This doesn't change the expected gradient but lowers its variance.</p>
+                            <div class="formula" data-katex="\\mathbf{\\theta} \\leftarrow \\mathbf{\\theta} + \\alpha (G_t - b(S_t)) \\nabla \\ln \\pi(A_t|S_t, \\mathbf{\\theta})"></div>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Actor-Critic Methods</h3>
+                            <p class="text-gray-600">Combine policy gradients with value function learning. The "Actor" (policy) learns what to do, while the "Critic" (value function) evaluates how good those actions are. The critic's feedback (e.g., the TD error) is used to train the actor, reducing variance and improving stability.</p>
+                        </div>
+                    </div>
+                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="pg-quiz" data-correct-answer="b">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What is the primary difference between Policy Gradient methods and Value-based methods?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="pg-quiz" value="a" class="mr-2"> Policy Gradient methods only work in deterministic environments.</label>
+                            <label class="flex items-center"><input type="radio" name="pg-quiz" value="b" class="mr-2"> Policy Gradient methods directly optimize a parameterized policy.</label>
+                            <label class="flex items-center"><input type="radio" name="pg-quiz" value="c" class="mr-2"> Value-based methods do not use a discount factor.</label>
+                            <label class="flex items-center"><input type="radio" name="pg-quiz" value="d" class="mr-2"> Policy Gradient methods do not use neural networks.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'mcts', title: 'MCTS', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Monte-Carlo Tree Search (MCTS)</h2>
+                    <div class="card p-6 rounded-lg">
+                        <p class="text-gray-600">A powerful planning algorithm that combines the precision of tree search with the generality of random sampling. MCTS doesn't require a model of the environment; instead, it builds a search tree step-by-step based on the outcomes of simulated episodes (rollouts). The process iterates through four main steps:</p>
+                        <ul class="list-decimal list-inside text-gray-600 space-y-2 mt-4">
+                            <li><strong>Selection:</strong> Starting from the root, traverse the tree by selecting the most promising child nodes until a leaf node is reached. A common selection strategy is UCB1 (Upper Confidence Bound 1), which balances exploitation and exploration.</li>
+                             <div class="formula" data-katex="\\text{UCB1}(v) = \\underbrace{\\frac{Q(v)}{N(v)}}_{\\text{Exploitation}} + \\underbrace{c \\sqrt{\\frac{\\ln N(p)}{N(v)}}}_{\\text{Exploration}}"></div>
+                             <p class="text-sm text-gray-500 mt-2 text-center">Where $Q(v)$ is total reward from node $v$, $N(v)$ is its visit count, $N(p)$ is the parent's visit count, and $c$ is an exploration constant.</p>
+                            <li><strong>Expansion:</strong> Add one or more child nodes to the leaf node, representing new actions to explore.</li>
+                            <li><strong>Simulation:</strong> From a new node, run a simulated episode (a "rollout") by choosing random actions until a terminal state is reached. The outcome is the return (e.g., +1 for a win, -1 for a loss).</li>
+                            <li><strong>Backpropagation:</strong> Update the value estimates ($Q$) and visit counts ($N$) of all nodes traversed during the selection phase with the return from the simulation.</li>
+                        </ul>
+                    </div>
+                    <div class="card p-6 rounded-lg mt-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Interactive MCTS Animation</h3>
+                        <p class="text-gray-600 mb-4">Watch the MCTS algorithm build a search tree step-by-step. Each iteration performs the four key steps to evaluate the best next move from the root node.</p>
+                        <canvas id="mcts-canvas" width="600" height="400"></canvas>
+                        <div class="mt-4 flex items-center space-x-4">
+                            <button id="mcts-step-btn" class="btn-primary font-semibold py-2 px-4 rounded">Step</button>
+                            <button id="mcts-play-btn" class="btn-secondary font-semibold py-2 px-4 rounded">Auto-Play</button>
+                            <button id="mcts-reset-btn" class="btn-danger font-semibold py-2 px-4 rounded">Reset</button>
+                            <div id="mcts-status" class="text-gray-700 font-medium p-2 bg-yellow-100 rounded">Status: Ready</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="mcts-quiz" data-correct-answer="d">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">The UCB1 formula is primarily used in which step of the MCTS algorithm?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="mcts-quiz" value="a" class="mr-2"> Backpropagation</label>
+                            <label class="flex items-center"><input type="radio" name="mcts-quiz" value="b" class="mr-2"> Expansion</label>
+                            <label class="flex items-center"><input type="radio" name="mcts-quiz" value="c" class="mr-2"> Simulation</label>
+                            <label class="flex items-center"><input type="radio" name="mcts-quiz" value="d" class="mr-2"> Selection</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'alphago', title: 'AlphaGo & MuZero', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">AlphaGo, AlphaGo Zero, & MuZero</h2>
+                    <div class="card p-6 rounded-lg">
+                        <p class="text-gray-600">These landmark systems from DeepMind showcase the power of deep RL and search.
+                            <br>• <strong>AlphaGo:</strong> Famously defeated world champion Lee Sedol. It used two neural networks—a "policy network" to select moves and a "value network" to predict the winner—trained on human expert games. These networks guided a powerful MCTS algorithm.
+                            <br>• <strong>AlphaGo Zero:</strong> A more powerful version that learned entirely from self-play, without any human data. Starting with random play, it discovered strategies far superior to human play, demonstrating that tabula rasa learning could surpass human knowledge.
+                            <br>• <strong>MuZero:</strong> The most general of the three. It masters games like Go, chess, and Atari <span class="italic">without being told the rules</span>. MuZero learns its own model of the environment focused only on the aspects relevant for planning (predicting the next reward, policy, and value), making it a significant step towards more general-purpose algorithms.
+                        </p>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="alphago-quiz" data-correct-answer="b">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What was a key difference between AlphaGo and AlphaGo Zero?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="alphago-quiz" value="a" class="mr-2"> AlphaGo used MCTS, but AlphaGo Zero did not.</label>
+                            <label class="flex items-center"><input type="radio" name="alphago-quiz" value="b" class="mr-2"> AlphaGo Zero learned entirely from self-play without human data.</label>
+                            <label class="flex items-center"><input type="radio" name="alphago-quiz" value="c" class="mr-2"> AlphaGo Zero was designed only for the game of Chess.</label>
+                            <label class="flex items-center"><input type="radio" name="alphago-quiz" value="d" class="mr-2"> AlphaGo used a single neural network.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'imitation-learning', title: 'Imitation Learning', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Imitation Learning</h2>
+                    <div class="card p-6 rounded-lg">
+                        <p class="text-gray-600">A family of methods where an agent learns by observing an expert, rather than through its own trial-and-error. This is useful when exploration is costly, dangerous, or when rewards are hard to define.
+                           <br>• <strong>Behavioral Cloning:</strong> The simplest approach. It treats imitation as a supervised learning problem, training a policy network to map states to the actions an expert took in those states. Its main weakness is the "covariate shift" problem: if the agent enters a state the expert never saw, it may not know how to recover.
+                           <br>• <strong>Inverse Reinforcement Learning (IRL):</strong> A more advanced approach. Instead of just copying actions, IRL tries to infer the expert's hidden reward function. The assumption is that the expert is acting optimally according to some reward signal. Once this reward function is learned, it can be used with any RL algorithm to train a robust policy.
+                        </p>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="imitation-quiz" data-correct-answer="c">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">What is the main weakness of the Behavioral Cloning approach to imitation learning?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="imitation-quiz" value="a" class="mr-2"> It is computationally very expensive.</label>
+                            <label class="flex items-center"><input type="radio" name="imitation-quiz" value="b" class="mr-2"> It requires a perfect model of the environment.</label>
+                            <label class="flex items-center"><input type="radio" name="imitation-quiz" value="c" class="mr-2"> It can fail in unseen states due to covariate shift.</label>
+                            <label class="flex items-center"><input type="radio" name="imitation-quiz" value="d" class="mr-2"> It cannot learn a stochastic policy.</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'marl', title: 'Multi-Agent RL', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Multi-Agent RL (MARL)</h2>
+                    <div class="card p-6 rounded-lg">
+                        <p class="text-gray-600">MARL extends RL to systems with multiple agents that learn and act in a shared environment. This introduces significant challenges beyond single-agent RL:
+                            <br>• <strong>Non-stationarity:</strong> As other agents learn and change their policies, the environment effectively becomes non-stationary from the perspective of any one agent. What was a good action yesterday might be a bad action today.
+                            <br>• <strong>Credit Assignment:</strong> In cooperative settings, it can be difficult to determine which agent's actions were responsible for the team's success or failure.
+                            <br>• <strong>Coordination/Competition:</strong> Agents must learn to either coordinate with allies or compete effectively against adversaries.
+                            <br>A popular paradigm is "Centralized Training with Decentralized Execution" (CTDE), where agents can share information during training but must act based only on their local observations during execution.
+                        </p>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="marl-quiz" data-correct-answer="c">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">The paradigm where agents share information during training but not execution is called:</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="marl-quiz" value="a" class="mr-2"> Independent Q-Learning</label>
+                            <label class="flex items-center"><input type="radio" name="marl-quiz" value="b" class="mr-2"> Policy Gradients</label>
+                            <label class="flex items-center"><input type="radio" name="marl-quiz" value="c" class="mr-2"> Centralized Training with Decentralized Execution (CTDE)</label>
+                            <label class="flex items-center"><input type="radio" name="marl-quiz" value="d" class="mr-2"> Markov Games</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'hitl', title: 'Human-in-the-Loop RL', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Human-in-the-Loop (HITL) Learning</h2>
+                    <div class="card p-6 rounded-lg">
+                        <p class="text-gray-600">Also known as Interactive RL, this approach integrates human feedback into the agent's learning loop. This is valuable when environmental rewards are sparse or when we want to align the agent's behavior with complex human preferences. The feedback can take many forms:</p>
+                         <ul class="list-disc list-inside text-gray-600 space-y-2 mt-4">
+                            <li><strong>Reward Shaping:</strong> A human provides additional reward signals to guide the agent.</li>
+                            <li><strong>Policy Shaping:</strong> A human can directly influence the agent's actions or policy.</li>
+                            <li><strong>Preference-Based RL:</strong> A human provides feedback by comparing two different behaviors from the agent, and the agent learns a reward function that explains these preferences.</li>
+                        </ul>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="hitl-quiz" data-correct-answer="d">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">Which of the following is NOT a common form of human feedback in HITL learning?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="hitl-quiz" value="a" class="mr-2"> Reward Shaping</label>
+                            <label class="flex items-center"><input type="radio" name="hitl-quiz" value="b" class="mr-2"> Policy Shaping</label>
+                            <label class="flex items-center"><input type="radio" name="hitl-quiz" value="c" class="mr-2"> Preference-Based Feedback</label>
+                            <label class="flex items-center"><input type="radio" name="hitl-quiz" value="d" class="mr-2"> State Abstraction</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+                { id: 'safety', title: 'Safety in RL', content: `
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Safety in RL</h2>
+                    <div class="card p-6 rounded-lg">
+                        <p class="text-gray-600">Ensuring RL agents behave safely and reliably is critical for real-world deployment in areas like robotics, autonomous driving, and healthcare. The goal is to prevent the agent from causing harm or entering catastrophic states, especially during its initial exploration phase. Key approaches include:
+                            <br>• <strong>Constrained MDPs:</strong> The problem is formulated to maximize a reward function while satisfying explicit safety constraints (e.g., "keep the robot's temperature below a certain threshold").
+                            <br>• <strong>Safe Exploration:</strong> Designing algorithms that explore the environment cautiously, using uncertainty estimates to avoid actions that could lead to dangerous, unknown states.
+                            <br>• <strong>Shielding:</strong> Using a predefined set of safety rules or a formal verification module (a "shield") to monitor and override the agent's actions if they are deemed unsafe.
+                        </p>
+                    </div>
+                    <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="safety-quiz" data-correct-answer="a">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
+                        <p class="font-medium text-gray-700 mb-2">Using a formal module to override an agent's potentially unsafe actions is known as:</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="safety-quiz" value="a" class="mr-2"> Shielding</label>
+                            <label class="flex items-center"><input type="radio" name="safety-quiz" value="b" class="mr-2"> Reward Shaping</label>
+                            <label class="flex items-center"><input type="radio" name="safety-quiz" value="c" class="mr-2"> Constrained MDPs</label>
+                            <label class="flex items-center"><input type="radio" name="safety-quiz" value="d" class="mr-2"> Safe Exploration</label>
+                        </div>
+                        <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
+                        <div class="quiz-feedback hidden"></div>
+                    </div>
+                `},
+            ];
+            
+            const mainContent = document.getElementById('main-content');
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const topicHierarchy = {
+                'Introduction': ['intro-rl', 'elements-rl'],
+                'Core Problems & Frameworks': ['mab', 'mdp'],
+                'Solution Methods': ['dp', 'mc', 'td'],
+                'Advanced Topics': ['func-approx', 'deep-rl', 'policy-grad'],
+                'Planning & Case Studies': ['mcts', 'alphago', 'imitation-learning'],
+                'Frontiers in RL': ['marl', 'hitl', 'safety']
+            };
+
+            // Populate sidebar and content
+            Object.entries(topicHierarchy).forEach(([category, topicIds]) => {
+                const categoryTitle = document.createElement('h3');
+                categoryTitle.className = 'text-xs font-bold text-gray-500 uppercase tracking-wider mt-6 mb-2 px-4';
+                categoryTitle.textContent = category;
+                sidebarNav.appendChild(categoryTitle);
+
+                topicIds.forEach(topicId => {
+                    const topic = topics.find(t => t.id === topicId);
+                    if (topic) {
+                        const link = document.createElement('a');
+                        link.href = '#';
+                        link.className = 'block py-2 px-4 rounded-md sidebar-item text-gray-700 text-sm';
+                        link.dataset.target = topic.id;
+                        link.textContent = topic.title;
+                        sidebarNav.appendChild(link);
+                        
+                        const section = document.createElement('section');
+                        section.id = topic.id;
+                        section.className = 'content-section';
+                        section.innerHTML = topic.content;
+                        mainContent.appendChild(section);
+                    }
+                });
+            });
+
+            // Render block-level formulas once after all content is in the DOM.
+            // Inline formulas will be handled by the auto-render script in the <head>.
+            document.querySelectorAll('.formula').forEach(el => {
+                katex.render(el.dataset.katex, el, {
+                    throwOnError: false,
+                    displayMode: true
+                });
+            });
+
+            const navLinks = document.querySelectorAll('.sidebar-item');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            function switchTab(targetId) {
+                contentSections.forEach(section => {
+                    section.classList.toggle('active', section.id === targetId);
+                });
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.dataset.target === targetId);
+                });
+                 // Re-render math in the newly activated tab
+                const activeSection = document.getElementById(targetId);
+                if (activeSection && window.renderMathInElement) {
+                    renderMathInElement(activeSection, {
+                        delimiters: [{left: '$', right: '$', display: false}],
+                        throwOnError: false
+                    });
+                }
+                
+                // Initialize interactive canvas if it's visible
+                if (targetId === 'mab') initBanditProblem();
+                if (targetId === 'mdp') initGridworld();
+                if (targetId === 'mc') initBlackjackMC();
+                if (targetId === 'mcts') initMCTSAnimation();
+            }
+
+            sidebarNav.addEventListener('click', (e) => {
+                if (e.target.closest('.sidebar-item')) {
+                    e.preventDefault();
+                    const targetId = e.target.closest('.sidebar-item').dataset.target;
+                    switchTab(targetId);
+                }
+            });
+
+            // Quiz Handler using Event Delegation
+            mainContent.addEventListener('click', (e) => {
+                if (e.target.classList.contains('quiz-submit-btn')) {
+                    const quizContainer = e.target.closest('.quiz-container');
+                    const quizId = quizContainer.dataset.quizId;
+                    const correctAnswer = quizContainer.dataset.correctAnswer;
+                    const selectedAnswer = quizContainer.querySelector(`input[name="${quizId}"]:checked`);
+                    const feedbackEl = quizContainer.querySelector('.quiz-feedback');
+                    
+                    if (selectedAnswer) {
+                        feedbackEl.classList.remove('hidden', 'correct', 'incorrect');
+                        if (selectedAnswer.value === correctAnswer) {
+                            feedbackEl.textContent = 'Correct! Well done.';
+                            feedbackEl.classList.add('correct');
+                        } else {
+                            feedbackEl.textContent = 'Not quite. Try again!';
+                            feedbackEl.classList.add('incorrect');
+                        }
+                    } else {
+                        feedbackEl.classList.remove('hidden', 'correct');
+                        feedbackEl.textContent = 'Please select an answer.';
+                        feedbackEl.classList.add('incorrect');
+                    }
+                }
+            });
+
+
+            // Initial state and initial render
+            switchTab('intro-rl');
+
+            // --- Multi-Armed Bandit ---
+            function initBanditProblem() {
+                const armsContainer = document.getElementById('bandit-arms-container');
+                if (!armsContainer || armsContainer.dataset.initialized) return;
+                armsContainer.dataset.initialized = 'true';
+                let intervalId = null;
+
+                const NUM_ARMS = 5;
+                let trueMeans = [];
+                let estimatedValues = [];
+                let pullCounts = [];
+                let totalReward = 0;
+                let totalPulls = 0;
+                let epsilon = 0.1;
+                
+                const epsilonSlider = document.getElementById('epsilon-slider');
+                const epsilonValueSpan = document.getElementById('epsilon-value');
+                const resetButton = document.getElementById('reset-bandit-btn');
+                const totalRewardEl = document.getElementById('bandit-total-reward');
+                const totalPullsEl = document.getElementById('bandit-total-pulls');
+
+                epsilonSlider.addEventListener('input', (e) => {
+                    epsilon = parseFloat(e.target.value);
+                    epsilonValueSpan.textContent = epsilon.toFixed(2);
+                });
+
+                resetButton.addEventListener('click', setup);
+
+                function setup() {
+                    if(intervalId) clearInterval(intervalId);
+                    armsContainer.innerHTML = '';
+                    trueMeans = Array.from({length: NUM_ARMS}, () => Math.random());
+                    estimatedValues = Array(NUM_ARMS).fill(0);
+                    pullCounts = Array(NUM_ARMS).fill(0);
+                    totalReward = 0;
+                    totalPulls = 0;
+
+                    for (let i = 0; i < NUM_ARMS; i++) {
+                        const armWrapper = document.createElement('div');
+                        armWrapper.className = 'flex flex-col items-center h-full justify-end';
+                        armWrapper.innerHTML = `
+                            <div class="text-sm text-gray-600 mb-1">Pulls: <span id="pulls-${i}">0</span></div>
+                            <div class="text-sm font-mono text-blue-600 mb-1">Q(a): <span id="q-val-${i}">0.00</span></div>
+                            <div class="w-16 h-4/5 bg-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-300 relative flex items-end justify-center" id="arm-${i}">
+                               <div class="bg-blue-500 w-full rounded-t-lg" style="height: 0%;"></div>
+                            </div>
+                        `;
+                        armsContainer.appendChild(armWrapper);
+                        document.getElementById(`arm-${i}`).addEventListener('click', () => chooseAndPull(i));
+                    }
+                    updateDisplay();
+                    autoPlay();
+                }
+
+                function chooseAndPull(armIndex = -1) {
+                    let choice;
+                    if (armIndex !== -1) {
+                        choice = armIndex;
+                    } else {
+                        if (Math.random() < epsilon) {
+                            choice = Math.floor(Math.random() * NUM_ARMS);
+                        } else {
+                            const maxQ = Math.max(...estimatedValues);
+                            const bestArms = estimatedValues.map((q, i) => q === maxQ ? i : -1).filter(i => i !== -1);
+                            choice = bestArms[Math.floor(Math.random() * bestArms.length)];
+                        }
+                    }
+                    const reward = Math.random() < trueMeans[choice] ? 1 : 0;
+                    totalReward += reward;
+                    totalPulls++;
+                    pullCounts[choice]++;
+                    estimatedValues[choice] += (1 / pullCounts[choice]) * (reward - estimatedValues[choice]);
+                    updateDisplay();
+                }
+
+                function updateDisplay() {
+                    for (let i = 0; i < NUM_ARMS; i++) {
+                        document.getElementById(`pulls-${i}`).textContent = pullCounts[i];
+                        document.getElementById(`q-val-${i}`).textContent = estimatedValues[i].toFixed(2);
+                        const armBar = document.querySelector(`#arm-${i} > div`);
+                        armBar.style.height = `${estimatedValues[i] * 100}%`;
+                    }
+                    totalRewardEl.textContent = totalReward;
+                    totalPullsEl.textContent = totalPulls;
+                }
+
+                function autoPlay() {
+                    intervalId = setInterval(() => {
+                        if (document.getElementById('bandit-arms-container')) {
+                            chooseAndPull();
+                        } else {
+                            clearInterval(intervalId);
+                        }
+                    }, 100);
+                }
+                setup();
+            }
+
+            // --- Monte Carlo Blackjack ---
+            function initBlackjackMC() {
+                const canvas = document.getElementById('blackjack-canvas');
+                if (!canvas || canvas.dataset.initialized) return;
+                canvas.dataset.initialized = 'true';
+
+                const ctx = canvas.getContext('2d');
+                const play1Btn = document.getElementById('blackjack-play1-btn');
+                const play100Btn = document.getElementById('blackjack-play100-btn');
+                const resetBtn = document.getElementById('blackjack-reset-btn');
+                const gamesPlayedEl = document.getElementById('blackjack-games-played');
+                
+                let V = {}; // State-value function: V[state_string] = { sum: N, count: N }
+                let gamesPlayed = 0;
+
+                const reset = () => {
+                    V = {};
+                    gamesPlayed = 0;
+                    gamesPlayedEl.textContent = `Games Played: 0`;
+                    drawValueFunction();
+                };
+                
+                const getCard = () => {
+                    let card = Math.min(10, Math.floor(Math.random() * 13) + 1);
+                    return card === 1 ? 11 : card; // Ace is 11
+                };
+
+                const getHandSum = (hand) => {
+                    let sum = hand.reduce((a, b) => a + b, 0);
+                    let aces = hand.filter(c => c === 11).length;
+                    while (sum > 21 && aces > 0) {
+                        sum -= 10;
+                        aces--;
+                    }
+                    return sum;
+                };
+
+                const runEpisode = () => {
+                    let playerHand = [getCard(), getCard()];
+                    let dealerHand = [getCard(), getCard()];
+                    let episode = []; // Store (state, action, reward) tuples
+
+                    // Player's turn
+                    while(true) {
+                        let playerSum = getHandSum(playerHand);
+                        if(playerSum > 21) break; // Player busts
+                        
+                        let usableAce = playerHand.includes(11) && getHandSum(playerHand.map(c => c === 11 ? 1 : c)) <= 10;
+                        let state = `${playerSum}-${dealerHand[0]}-${usableAce}`;
+                        
+                        // Policy: stick on 20 or 21, otherwise hit
+                        let action = playerSum >= 20 ? 'stick' : 'hit';
+                        episode.push({ state });
+
+                        if(action === 'stick') break;
+                        playerHand.push(getCard());
+                    }
+                    
+                    // Dealer's turn
+                    let playerSum = getHandSum(playerHand);
+                    let reward = 0;
+                    if(playerSum > 21) {
+                        reward = -1; // Player busts
+                    } else {
+                        while(getHandSum(dealerHand) < 17) {
+                            dealerHand.push(getCard());
+                        }
+                        let dealerSum = getHandSum(dealerHand);
+                        if(dealerSum > 21 || playerSum > dealerSum) {
+                            reward = 1; // Dealer busts or player wins
+                        } else if(playerSum < dealerSum) {
+                            reward = -1; // Dealer wins
+                        } else {
+                            reward = 0; // Draw
+                        }
+                    }
+
+                    // Update V using first-visit MC
+                    const visitedStates = new Set();
+                    for(const step of episode) {
+                        if(!visitedStates.has(step.state)) {
+                            if(!V[step.state]) V[step.state] = { sum: 0, count: 0 };
+                            V[step.state].sum += reward;
+                            V[step.state].count++;
+                            visitedStates.add(step.state);
+                        }
+                    }
+                    gamesPlayed++;
+                };
+
+                const runMultipleEpisodes = (count) => {
+                    for(let i=0; i<count; i++) runEpisode();
+                    gamesPlayedEl.textContent = `Games Played: ${gamesPlayed}`;
+                    drawValueFunction();
+                };
+
+                const drawValueFunction = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    const drawGrid = (x_offset, y_offset, title) => {
+                        ctx.fillStyle = '#3D4451';
+                        ctx.font = 'bold 14px Inter';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(title, x_offset + 125, y_offset - 10);
+
+                        const playerSums = Array.from({length: 10}, (_, i) => 21 - i); // 21 down to 12
+                        const dealerCards = Array.from({length: 10}, (_, i) => i + 1); // A, 2..10
+                        
+                        const colWidth = 25;
+                        const rowHeight = 25;
+
+                        for(let r=0; r < playerSums.length; r++) {
+                             for(let c=0; c < dealerCards.length; c++) {
+                                let stateStr = `${playerSums[r]}-${dealerCards[c] === 1 ? 11 : dealerCards[c]}-${title.includes('Usable Ace')}`;
+                                let value = V[stateStr] ? V[stateStr].sum / V[stateStr].count : 0;
+                                
+                                let color = 'rgba(200, 200, 200, 0.5)';
+                                if(value > 0) color = `rgba(74, 222, 128, ${Math.abs(value)})`; // green
+                                else if(value < 0) color = `rgba(248, 113, 113, ${Math.abs(value)})`; // red
+                                
+                                ctx.fillStyle = color;
+                                ctx.fillRect(x_offset + c * colWidth, y_offset + r * rowHeight, colWidth, rowHeight);
+                                ctx.strokeStyle = '#e5e7eb';
+                                ctx.strokeRect(x_offset + c * colWidth, y_offset + r * rowHeight, colWidth, rowHeight);
+
+                                ctx.fillStyle = Math.abs(value) > 0.5 ? 'white' : 'black';
+                                ctx.font = '9px Inter';
+                                ctx.fillText(value.toFixed(2), x_offset + c * colWidth + colWidth/2, y_offset + r * rowHeight + rowHeight/2);
+                             }
+                        }
+                        // Draw labels
+                        ctx.fillStyle = '#3D4451';
+                        ctx.font = '11px Inter';
+                        for(let r=0; r < playerSums.length; r++) {
+                            ctx.fillText(playerSums[r], x_offset - 15, y_offset + r*rowHeight + rowHeight/2);
+                        }
+                         for(let c=0; c < dealerCards.length; c++) {
+                            ctx.fillText(dealerCards[c] === 1 ? 'A' : dealerCards[c], x_offset + c * colWidth + colWidth/2, y_offset + playerSums.length*rowHeight + 10);
+                        }
+                    };
+
+                    drawGrid(40, 40, "With Usable Ace");
+                    drawGrid(330, 40, "No Usable Ace");
+                };
+
+                play1Btn.addEventListener('click', () => runMultipleEpisodes(1));
+                play100Btn.addEventListener('click', () => runMultipleEpisodes(100));
+                resetBtn.addEventListener('click', reset);
+                
+                reset();
+            }
+
+            // --- Gridworld ---
+            function initGridworld() {
+                const canvas = document.getElementById('gridworld-canvas');
+                if (!canvas || canvas.dataset.initialized) return;
+                canvas.dataset.initialized = 'true';
+                let intervalId = null;
+                
+                const ctx = canvas.getContext('2d');
+                const GRID_SIZE = 5;
+                const CELL_SIZE = canvas.width / GRID_SIZE;
+                
+                const grid = [[0, 0, 0, 0, 1], [0, -1, 0, 0, 0], [0, 0, 0, -1, 0], [0, -1, 0, 0, 0], [0, 0, 0, 0, 0]];
+                let values = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+                let iterationCount = 0;
+                const GAMMA = 0.9;
+
+                const viButton = document.getElementById('gridworld-vi-btn');
+                const resetButton = document.getElementById('gridworld-reset-btn');
+                const iterationsEl = document.getElementById('gridworld-iterations');
+
+                function drawGrid() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (let r = 0; r < GRID_SIZE; r++) {
+                        for (let c = 0; c < GRID_SIZE; c++) {
+                            ctx.strokeStyle = '#e5e7eb';
+                            ctx.strokeRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                            if (grid[r][c] === 1) ctx.fillStyle = 'rgba(74, 222, 128, 0.8)';
+                            else if (grid[r][c] === -1) ctx.fillStyle = 'rgba(248, 113, 113, 0.8)';
+                            else continue;
+                            ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                        }
+                    }
+                     for (let r = 0; r < GRID_SIZE; r++) {
+                        for (let c = 0; c < GRID_SIZE; c++) {
+                            ctx.fillStyle = '#1f2937';
+                            ctx.font = '16px Inter';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(values[r][c].toFixed(2), c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2);
+                        }
+                    }
+                }
+                
+                function valueIterationStep() {
+                    let newValues = JSON.parse(JSON.stringify(values));
+                    for (let r = 0; r < GRID_SIZE; r++) {
+                        for (let c = 0; c < GRID_SIZE; c++) {
+                             if (grid[r][c] !== 0) continue;
+                            let actionValues = [];
+                            const actions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                            for (const [dr, dc] of actions) {
+                                const nr = r + dr, nc = c + dc;
+                                let reward = -0.1, nextValue = 0;
+                                if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
+                                     if(grid[nr][nc] === 1) reward = 10;
+                                     if(grid[nr][nc] === -1) reward = -10;
+                                     nextValue = values[nr][nc];
+                                } else {
+                                    reward = -1;
+                                    nextValue = values[r][c];
+                                }
+                                actionValues.push(reward + GAMMA * nextValue);
+                            }
+                            newValues[r][c] = Math.max(...actionValues);
+                        }
+                    }
+                    values = newValues;
+                    iterationCount++;
+                    iterationsEl.textContent = `Iterations: ${iterationCount}`;
+                    drawGrid();
+                }
+
+                function runValueIteration() {
+                     if(intervalId) clearInterval(intervalId);
+                     intervalId = setInterval(() => {
+                        if (iterationCount < 50 && document.getElementById('gridworld-canvas')) {
+                             valueIterationStep();
+                        } else {
+                            clearInterval(intervalId);
+                        }
+                    }, 100);
+                }
+
+                function reset() {
+                    if(intervalId) clearInterval(intervalId);
+                    values = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+                    iterationCount = 0;
+                    iterationsEl.textContent = `Iterations: ${iterationCount}`;
+                    drawGrid();
+                }
+
+                viButton.addEventListener('click', runValueIteration);
+                resetButton.addEventListener('click', reset);
+
+                drawGrid();
+            }
+
+            // --- MCTS Animation ---
+            function initMCTSAnimation() {
+                const canvas = document.getElementById('mcts-canvas');
+                if (!canvas || canvas.dataset.initialized) return;
+                canvas.dataset.initialized = 'true';
+
+                const ctx = canvas.getContext('2d');
+                const statusEl = document.getElementById('mcts-status');
+                const stepBtn = document.getElementById('mcts-step-btn');
+                const playBtn = document.getElementById('mcts-play-btn');
+                const resetBtn = document.getElementById('mcts-reset-btn');
+
+                let tree = null;
+                let nodeIdCounter = 0;
+                let isPlaying = false;
+                let playInterval = null;
+
+                const NODE_RADIUS = 25;
+                const EXPLORATION_CONSTANT = 1.41; // sqrt(2)
+
+                function createNode(parent) {
+                    return {
+                        id: nodeIdCounter++,
+                        parent: parent,
+                        children: [],
+                        visits: 0,
+                        value: 0,
+                        x: 0, y: 0,
+                        numUnexplored: Math.floor(2 + Math.random() * 2) // Each node has 2-3 possible moves
+                    };
+                }
+
+                function reset() {
+                    nodeIdCounter = 0;
+                    tree = createNode(null);
+                    tree.x = canvas.width / 2;
+                    tree.y = 50;
+                    statusEl.textContent = "Status: Ready";
+                    if(playInterval) clearInterval(playInterval);
+                    isPlaying = false;
+                    playBtn.textContent = 'Auto-Play';
+                    stepBtn.disabled = false;
+                    drawTree();
+                }
+
+                function drawNode(node, highlight = 'black') {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, NODE_RADIUS, 0, Math.PI * 2);
+                    ctx.fillStyle = 'white';
+                    ctx.fill();
+                    ctx.strokeStyle = highlight;
+                    ctx.lineWidth = highlight === 'black' ? 2 : 4;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#3D4451';
+                    ctx.font = '12px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const valueText = `${node.value.toFixed(1)} / ${node.visits}`;
+                    ctx.fillText(valueText, node.x, node.y);
+                    ctx.font = '10px Inter';
+                    ctx.fillText(`id: ${node.id}`, node.x, node.y + 12);
+                }
+
+                function drawEdge(parent, child) {
+                    ctx.beginPath();
+                    ctx.moveTo(parent.x, parent.y + NODE_RADIUS);
+                    ctx.lineTo(child.x, child.y - NODE_RADIUS);
+                    ctx.strokeStyle = '#a1a1aa';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                function setNodePositions(node, x, y, width) {
+                    node.x = x;
+                    node.y = y;
+                    if (node.children.length === 0) return;
+
+                    const childWidth = width / node.children.length;
+                    node.children.forEach((child, i) => {
+                        setNodePositions(child, x - width/2 + childWidth/2 + i*childWidth, y + 80, childWidth);
+                    });
+                }
+
+                function drawTree(highlightPath = []) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    setNodePositions(tree, canvas.width / 2, 50, canvas.width * 0.8);
+                    
+                    const nodesToDraw = [tree];
+                    while(nodesToDraw.length > 0) {
+                        const node = nodesToDraw.pop();
+                        if (node.parent) drawEdge(node.parent, node);
+                        nodesToDraw.push(...node.children);
+                    }
+
+                     const highlightSet = new Set(highlightPath.map(n => n.id));
+                     const nodesToDrawAgain = [tree];
+                      while(nodesToDrawAgain.length > 0) {
+                        const node = nodesToDrawAgain.pop();
+                        const highlightColor = highlightSet.has(node.id) ? '#4A90E2' : 'black';
+                        drawNode(node, highlightColor);
+                        nodesToDrawAgain.push(...node.children);
+                    }
+                }
+                
+                function ucb1(node) {
+                    if (node.visits === 0) return Infinity;
+                    const exploitation = node.value / node.visits;
+                    const exploration = EXPLORATION_CONSTANT * Math.sqrt(Math.log(node.parent.visits) / node.visits);
+                    return exploitation + exploration;
+                }
+
+                async function runIteration() {
+                    stepBtn.disabled = true;
+                    
+                    // 1. Selection
+                    statusEl.textContent = '1. Selection: Finding best leaf...';
+                    let currentNode = tree;
+                    let path = [currentNode];
+                    while (currentNode.children.length > 0 && currentNode.numUnexplored === 0) {
+                        currentNode = currentNode.children.reduce((best, child) => ucb1(child) > ucb1(best) ? child : best);
+                        path.push(currentNode);
+                        drawTree(path);
+                        await new Promise(r => setTimeout(r, 400));
+                    }
+                    drawTree(path);
+
+                    // 2. Expansion
+                    statusEl.textContent = '2. Expansion: Adding a new node.';
+                    await new Promise(r => setTimeout(r, 500));
+                    if (currentNode.numUnexplored > 0) {
+                        const newNode = createNode(currentNode);
+                        currentNode.children.push(newNode);
+                        currentNode.numUnexplored--;
+                        currentNode = newNode; // The new node becomes current for simulation
+                        path.push(currentNode);
+                    }
+                    drawTree(path);
+
+
+                    // 3. Simulation
+                    statusEl.textContent = '3. Simulation: Running random rollout...';
+                    await new Promise(r => setTimeout(r, 500));
+                    const result = Math.random() > 0.5 ? 1 : -1; // Win or Loss
+                     // Simple visual for simulation
+                    ctx.beginPath();
+                    ctx.arc(currentNode.x, currentNode.y, NODE_RADIUS + 5, 0, Math.PI * 2);
+                    ctx.strokeStyle = result > 0 ? '#10B981' : '#EF4444';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    ctx.font = 'bold 20px Inter';
+                    ctx.fillStyle = result > 0 ? '#10B981' : '#EF4444';
+                    ctx.fillText(result > 0 ? '+1' : '-1', currentNode.x + 40, currentNode.y);
+
+
+                    // 4. Backpropagation
+                    statusEl.textContent = '4. Backpropagation: Updating values.';
+                    await new Promise(r => setTimeout(r, 800));
+                    for (let i = path.length - 1; i >= 0; i--) {
+                        const node = path[i];
+                        node.visits++;
+                        node.value += result;
+                        drawTree(path.slice(0, i + 1));
+                         await new Promise(r => setTimeout(r, 400));
+                    }
+
+                    statusEl.textContent = "Status: Ready";
+                    stepBtn.disabled = false;
+                }
+
+                stepBtn.addEventListener('click', runIteration);
+                resetBtn.addEventListener('click', reset);
+                playBtn.addEventListener('click', () => {
+                    isPlaying = !isPlaying;
+                    if (isPlaying) {
+                        playBtn.textContent = 'Pause';
+                        stepBtn.disabled = true;
+                        runIteration();
+                        playInterval = setInterval(runIteration, (path) => (path ? path.length * 800 + 2200 : 5000));
+                    } else {
+                        playBtn.textContent = 'Auto-Play';
+                        stepBtn.disabled = false;
+                        clearInterval(playInterval);
+                    }
+                });
+
+                reset();
+            }
+
+        });
+    </script>
+</body>
+</html>
+
