@@ -90,6 +90,12 @@
         .btn-danger:hover {
             background-color: #B00216;
         }
+        .td-q-value {
+            font-size: 10px;
+            position: absolute;
+            color: #555;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body class="flex min-h-screen">
@@ -374,30 +380,60 @@
                 `},
                 { id: 'td', title: 'Temporal Difference Learning', content: `
                     <h2 class="text-3xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Temporal Difference (TD) Learning</h2>
-                    <p class="text-lg text-gray-700 mb-6">TD learning is a combination of Monte Carlo and Dynamic Programming. Like MC, it learns from experience without a model. Like DP, it bootstraps, updating its estimates based on other learned estimates without waiting for the end of an episode.</p>
+                    <p class="text-lg text-gray-700 mb-6">TD learning is a central and novel idea in RL. It's a combination of Monte Carlo and Dynamic Programming. Like MC, it learns from raw experience without a model. Like DP, it bootstraps—it updates value estimates based on other learned estimates, without waiting for the final outcome.</p>
                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
                             <h3 class="text-xl font-semibold text-gray-900 mb-2">TD Prediction</h3>
-                            <p class="text-gray-600">The simplest TD method, TD(0), updates the value of a state based on the reward received and the estimated value of the *next* state. This is the core of bootstrapping.</p>
-                             <div class="formula" data-katex="V(S_t) \\leftarrow V(S_t) + \\alpha [R_{t+1} + \\gamma V(S_{t+1}) - V(S_t)]"></div>
+                            <p class="text-gray-600">TD Prediction estimates $v_\\pi$. The simplest method, TD(0), updates the value of a state $S_t$ towards a <strong>TD Target</strong> ($R_{t+1} + \\gamma V(S_{t+1})$), which is an estimate of the return. The difference between the current value and the target is the <strong>TD Error</strong>.</p>
+                            <div class="formula" data-katex="\\delta_t = R_{t+1} + \\gamma V(S_{t+1}) - V(S_t)"></div>
+                            <p class="text-gray-600 mt-2">The update rule then becomes:</p>
+                             <div class="formula" data-katex="V(S_t) \\leftarrow V(S_t) + \\alpha \\delta_t"></div>
+                             <p class="text-gray-600 mt-2">This is powerful because the agent learns after just one step, rather than waiting for the end of an episode.</p>
                         </div>
                         <div class="card p-6 rounded-lg">
-                             <h3 class="text-xl font-semibold text-gray-900 mb-2">SARSA (On-policy) vs Q-Learning (Off-policy)</h3>
-                            <p class="text-gray-600"><strong>SARSA</strong> learns the action-value function based on the policy being followed. <strong>Q-Learning</strong> learns the optimal action-value function, regardless of the agent's actions, by using the greedy action in the next state for its update.</p>
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">SARSA: On-Policy TD Control</h3>
+                            <p class="text-gray-600">SARSA learns action-values $Q(s,a)$ and uses them to improve the policy. It is <strong>on-policy</strong> because it learns about the policy it is currently following (including its exploratory moves). Its name comes from the quintuple of experience it uses for updates: $(S_t, A_t, R_{t+1}, S_{t+1}, A_{t+1})$.</p>
+                            <div class="formula" data-katex="Q(S_t, A_t) \\leftarrow Q(S_t, A_t) + \\alpha [R_{t+1} + \\gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t)]"></div>
+                             <p class="text-gray-600 mt-2">The target for the update, $Q(S_{t+1}, A_{t+1})$, uses the *actual* action $A_{t+1}$ taken in the next state.</p>
+                        </div>
+                        <div class="card p-6 rounded-lg">
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">Q-Learning: Off-Policy TD Control</h3>
+                            <p class="text-gray-600">Q-learning is a breakthrough off-policy algorithm. It learns the optimal action-value function, $q_*$, regardless of the policy being followed. This allows the agent to explore freely while still learning about the greedy, optimal policy.</p>
+                             <div class="formula" data-katex="Q(S_t, A_t) \\leftarrow Q(S_t, A_t) + \\alpha [R_{t+1} + \\gamma \\max_{a} Q(S_{t+1}, a) - Q(S_t, A_t)]"></div>
+                             <p class="text-gray-600 mt-2">The key difference from SARSA is the $\\max_a$ operator. Q-learning uses the value of the best possible next action to update its current Q-value, rather than the action that was actually taken.</p>
                         </div>
                          <div class="card p-6 rounded-lg">
-                             <h3 class="text-xl font-semibold text-gray-900 mb-2">N-step TD Methods</h3>
-                             <p class="text-gray-600">These methods unify MC and TD learning by looking ahead $n$ steps to form the update target. When $n=1$, it's standard TD. As $n \\rightarrow \\infty$, it becomes a Monte Carlo method. This allows for a spectrum of algorithms that can trade off bias and variance.</p>
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">Expected SARSA</h3>
+                             <p class="text-gray-600">A more sophisticated version of SARSA that, like Q-learning, is less sensitive to the variance of the next action. Instead of using the Q-value of the specific next action $A_{t+1}$, it uses the *expected* Q-value over all possible next actions, weighted by their probabilities under the current policy $\\pi$.</p>
+                            <div class="formula" data-katex="Q(S_t, A_t) \\leftarrow Q(S_t, A_t) + \\alpha \\left[R_{t+1} + \\gamma \\sum_{a} \\pi(a|S_{t+1}) Q(S_{t+1}, a) - Q(S_t, A_t)\\right]"></div>
                         </div>
                     </div>
-                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="td-quiz" data-correct-answer="b">
+                     <div class="card p-6 rounded-lg mt-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-4">Interactive TD Gridworld</h3>
+                        <p class="text-gray-600 mb-4">Watch an agent learn a path through the grid using TD methods. It has no model; it learns from each step. Notice the difference in the learned Q-values between SARSA (which accounts for exploratory moves) and Q-Learning (which always learns about the greedy path).</p>
+                        <div class="flex items-center space-x-4 mb-4">
+                            <label class="font-medium">Algorithm:</label>
+                            <select id="td-algo-select" class="rounded-md border-gray-300">
+                                <option value="sarsa">SARSA</option>
+                                <option value="q-learning">Q-Learning</option>
+                            </select>
+                            <button id="td-step-btn" class="btn-primary font-semibold py-2 px-4 rounded">Take Step</button>
+                             <button id="td-play-btn" class="btn-secondary font-semibold py-2 px-4 rounded">Auto-Play</button>
+                            <button id="td-reset-btn" class="btn-danger font-semibold py-2 px-4 rounded">Reset</button>
+                        </div>
+                        <div id="td-gridworld-container" class="relative" style="width: 400px; height: 400px;">
+                            <canvas id="td-gridworld-canvas" width="400" height="400"></canvas>
+                        </div>
+                         <div id="td-info" class="mt-2 text-sm text-gray-600"></div>
+                    </div>
+                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="td-quiz" data-correct-answer="d">
                         <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
-                        <p class="font-medium text-gray-700 mb-2">What does it mean for a TD method like Q-Learning to be "off-policy"?</p>
+                        <p class="font-medium text-gray-700 mb-2">What is the key difference in the update rule between SARSA and Q-Learning?</p>
                         <div class="space-y-2">
-                            <label class="flex items-center"><input type="radio" name="td-quiz" value="a" class="mr-2"> It can only learn in environments with no policies.</label>
-                            <label class="flex items-center"><input type="radio" name="td-quiz" value="b" class="mr-2"> It learns the value of the optimal policy, regardless of the policy it's following.</label>
-                            <label class="flex items-center"><input type="radio" name="td-quiz" value="c" class="mr-2"> It updates its policy after every single action.</label>
-                            <label class="flex items-center"><input type="radio" name="td-quiz" value="d" class="mr-2"> It requires a model of the environment's policy.</label>
+                            <label class="flex items-center"><input type="radio" name="td-quiz" value="a" class="mr-2"> SARSA uses a smaller learning rate.</label>
+                            <label class="flex items-center"><input type="radio" name="td-quiz" value="b" class="mr-2"> Q-Learning does not use a discount factor.</label>
+                            <label class="flex items-center"><input type="radio" name="td-quiz" value="c" class="mr-2"> SARSA learns state-values while Q-Learning learns action-values.</label>
+                            <label class="flex items-center"><input type="radio" name="td-quiz" value="d" class="mr-2"> Q-Learning uses the max Q-value of the next state for its update target.</label>
                         </div>
                         <button class="quiz-submit-btn mt-4 btn-primary font-semibold py-2 px-4 rounded">Check Answer</button>
                         <div class="quiz-feedback hidden"></div>
@@ -716,6 +752,7 @@
                 if (targetId === 'mab') initBanditProblem();
                 if (targetId === 'mdp') initGridworld();
                 if (targetId === 'mc') initBlackjackMC();
+                if (targetId === 'td') initTDGridworld();
                 if (targetId === 'mcts') initMCTSAnimation();
             }
 
@@ -1007,7 +1044,7 @@
                 reset();
             }
 
-            // --- Gridworld ---
+            // --- Gridworld DP ---
             function initGridworld() {
                 const canvas = document.getElementById('gridworld-canvas');
                 if (!canvas || canvas.dataset.initialized) return;
@@ -1102,6 +1139,174 @@
                 resetButton.addEventListener('click', reset);
 
                 drawGrid();
+            }
+
+            // --- Gridworld TD ---
+            function initTDGridworld() {
+                const canvas = document.getElementById('td-gridworld-canvas');
+                if (!canvas || canvas.dataset.initialized) return;
+                canvas.dataset.initialized = 'true';
+
+                const container = document.getElementById('td-gridworld-container');
+                const ctx = canvas.getContext('2d');
+                const algoSelect = document.getElementById('td-algo-select');
+                const stepBtn = document.getElementById('td-step-btn');
+                const playBtn = document.getElementById('td-play-btn');
+                const resetBtn = document.getElementById('td-reset-btn');
+                const infoEl = document.getElementById('td-info');
+
+                let playInterval = null;
+                const GRID_SIZE = 5;
+                const CELL_SIZE = canvas.width / GRID_SIZE;
+                const grid = [[0, 0, 0, 0, 1], [0, -1, 0, 0, 0], [0, 0, 0, -1, 0], [0, -1, 0, 0, 0], [0, 0, 0, 0, 0]];
+                
+                let Q = {}; // Q-table: Q['r,c'] = [q_up, q_down, q_left, q_right]
+                let agentPos = { r: 4, c: 0 };
+                
+                const ALPHA = 0.1;
+                const GAMMA = 0.9;
+                let EPSILON = 0.1;
+                let currentAlgorithm = 'sarsa';
+
+                const actions = [[-1, 0], [1, 0], [0, -1], [0, 1]]; // Up, Down, Left, Right
+
+                const getQ = (r, c) => {
+                    const key = `${r},${c}`;
+                    if (!Q[key]) Q[key] = [0, 0, 0, 0];
+                    return Q[key];
+                };
+
+                const chooseAction = (r, c) => {
+                    if (Math.random() < EPSILON) {
+                        return Math.floor(Math.random() * 4); // Explore
+                    }
+                    const q_values = getQ(r, c);
+                    const maxQ = Math.max(...q_values);
+                    const bestActions = q_values.map((q, i) => q === maxQ ? i : -1).filter(i => i !== -1);
+                    return bestActions[Math.floor(Math.random() * bestActions.length)]; // Exploit (break ties randomly)
+                };
+
+                const reset = () => {
+                    if(playInterval) clearInterval(playInterval);
+                    playBtn.textContent = 'Auto-Play';
+                    Q = {};
+                    agentPos = { r: 4, c: 0 };
+                    infoEl.textContent = 'Ready to learn!';
+                    draw();
+                };
+
+                const step = () => {
+                    const { r, c } = agentPos;
+                    if (grid[r][c] !== 0) { // Terminal state
+                        agentPos = { r: 4, c: 0 }; // Reset episode
+                        infoEl.textContent = 'Episode finished. Agent reset.';
+                        draw();
+                        return;
+                    }
+
+                    const action_idx = chooseAction(r, c);
+                    const [dr, dc] = actions[action_idx];
+                    let next_r = r + dr;
+                    let next_c = c + dc;
+                    let reward = -0.1;
+
+                    if (next_r < 0 || next_r >= GRID_SIZE || next_c < 0 || next_c >= GRID_SIZE) {
+                        next_r = r; next_c = c; reward = -1; // Bumped into wall
+                    }
+                     if (grid[next_r][next_c] === 1) reward = 10;
+                     if (grid[next_r][next_c] === -1) reward = -10;
+
+                    const q_current = getQ(r, c)[action_idx];
+                    let td_target;
+                    
+                    if (currentAlgorithm === 'sarsa') {
+                        const next_action_idx = chooseAction(next_r, next_c);
+                        const q_next = getQ(next_r, next_c)[next_action_idx];
+                        td_target = reward + GAMMA * q_next;
+                         infoEl.textContent = `SARSA: Took action ${action_idx}, will take ${next_action_idx} next.`;
+                    } else { // Q-Learning
+                        const q_next_values = getQ(next_r, next_c);
+                        const max_q_next = Math.max(...q_next_values);
+                        td_target = reward + GAMMA * max_q_next;
+                        infoEl.textContent = `Q-Learning: Took action ${action_idx}, but updated with max Q-value.`;
+                    }
+                    
+                    const new_q = q_current + ALPHA * (td_target - q_current);
+                    getQ(r, c)[action_idx] = new_q;
+                    
+                    agentPos = { r: next_r, c: next_c };
+                    draw();
+                };
+
+                const draw = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw Q-values first
+                    for (let r = 0; r < GRID_SIZE; r++) {
+                        for (let c = 0; c < GRID_SIZE; c++) {
+                            const q_values = getQ(r, c);
+                            const maxQ = Math.max(...q_values);
+                            const minQ = Math.min(...q_values);
+
+                            for (let i = 0; i < 4; i++) {
+                                const q = q_values[i];
+                                let colorVal = 0;
+                                if (maxQ > minQ) {
+                                    colorVal = (q - minQ) / (maxQ - minQ);
+                                }
+                                ctx.fillStyle = `rgba(74, 144, 226, ${colorVal * 0.7})`; // Blue intensity
+                                
+                                const [dr, dc] = actions[i];
+                                if(dr === -1) ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE / 3); // Up
+                                if(dr === 1) ctx.fillRect(c * CELL_SIZE, (r + 2/3) * CELL_SIZE, CELL_SIZE, CELL_SIZE / 3); // Down
+                                if(dc === -1) ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE / 3, CELL_SIZE); // Left
+                                if(dc === 1) ctx.fillRect((c + 2/3) * CELL_SIZE, r * CELL_SIZE, CELL_SIZE/3, CELL_SIZE); // Right
+                            }
+                        }
+                    }
+
+                    // Draw grid lines and terminals
+                    for (let r = 0; r < GRID_SIZE; r++) {
+                        for (let c = 0; c < GRID_SIZE; c++) {
+                            ctx.strokeStyle = '#e5e7eb';
+                            ctx.strokeRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                             if (grid[r][c] === 1) {
+                                ctx.fillStyle = 'rgba(74, 222, 128, 0.8)';
+                                ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                             } else if (grid[r][c] === -1) {
+                                ctx.fillStyle = 'rgba(248, 113, 113, 0.8)';
+                                ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                             }
+                        }
+                    }
+
+                    // Draw agent
+                    ctx.fillStyle = '#D0021B';
+                    ctx.beginPath();
+                    ctx.arc(agentPos.c * CELL_SIZE + CELL_SIZE/2, agentPos.r * CELL_SIZE + CELL_SIZE/2, CELL_SIZE/3, 0, 2*Math.PI);
+                    ctx.fill();
+                };
+
+                const togglePlay = () => {
+                    if (playInterval) {
+                        clearInterval(playInterval);
+                        playInterval = null;
+                        playBtn.textContent = 'Auto-Play';
+                    } else {
+                        playInterval = setInterval(step, 100);
+                        playBtn.textContent = 'Pause';
+                    }
+                }
+
+                algoSelect.addEventListener('change', (e) => {
+                    currentAlgorithm = e.target.value;
+                    reset();
+                });
+                stepBtn.addEventListener('click', step);
+                playBtn.addEventListener('click', togglePlay);
+                resetBtn.addEventListener('click', reset);
+                
+                reset();
             }
 
             // --- MCTS Animation ---
