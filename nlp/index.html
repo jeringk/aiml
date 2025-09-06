@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Canvas of Natural Language Processing</title>
+    <title>Interactive Guide to Natural Language Processing</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
     <!-- 
         Application Structure Plan:
-        This single-page application is designed based on the user-provided "DNN Canvas" theme. It features a persistent left-sidebar for easy navigation through NLP topics derived from the course handout. The main content area transforms the static PDF content into an engaging learning experience with interactive modules. For instance, concepts like Word Embeddings are visualized with a dynamic Chart.js plot, and the RAG process is explained with a clickable, step-by-step diagram. This structure prioritizes interactive learning and conceptual clarity, making the complex topics of NLP more accessible and explorable than in a linear document.
+        This single-page application is designed based on the user-provided "DNN Canvas" theme. It features a persistent left-sidebar for easy navigation through NLP topics. The main content area transforms static content into an engaging learning experience with interactive modules. For instance, concepts like Word Embeddings are visualized with a dynamic Chart.js plot, and the RAG process is explained with a clickable, step-by-step diagram. This structure prioritizes interactive learning and conceptual clarity, making the complex topics of NLP more accessible and explorable than in a linear document.
 
         Visualization & Content Choices:
         - NLU/NLG: A CSS-based diagram to show the hierarchical levels of language analysis. Goal: Organize & Inform.
@@ -24,8 +24,8 @@
         - POS Tagging: An interactive sentence where hovering over words reveals their part-of-speech tags. Goal: Interact & Explain.
         - Attention Mechanism: A CSS-based heatmap visualization. Interaction: Hovering a word shows its attention scores relative to other words in the sentence. Goal: Explain & Demonstrate a core concept visually.
         - Word Sense Disambiguation: A simple interactive quiz-like format for an ambiguous word. Goal: Interact & Explain.
-        - RAG: A step-by-step clickable diagram, similar to the Federated Learning example in the reference file. Goal: Explain Process.
-        All visualizations are built with HTML/CSS or Canvas via Chart.js, with no external SVG or Mermaid JS dependencies, adhering to the original file's constraints.
+        - RAG: A step-by-step clickable diagram. Goal: Explain Process.
+        All visualizations are built with HTML/CSS or Canvas via Chart.js, with no external SVG or Mermaid JS dependencies.
     -->
     <style>
         body {
@@ -65,7 +65,7 @@
 </head>
 <body class="flex min-h-screen">
     <aside id="sidebar" class="w-72 bg-[#F5F1EC] p-4 fixed top-0 left-0 h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-30 overflow-y-auto">
-        <h2 class="text-xl font-bold text-[#8A6D53] mb-6">NLP Canvas</h2>
+        <h2 class="text-xl font-bold text-[#8A6D53] mb-6">NLP Guide</h2>
         <nav class="space-y-1 text-sm">
             <a href="#topic-1" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">1. NLU & Generation</a>
             <a href="#topic-2" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">2. Vector Semantics & Embedding</a>
@@ -81,7 +81,6 @@
             <a href="#topic-12" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">12. Semantic Web & Knowledge Graph</a>
             <a href="#topic-13" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">13. Retrieval Augmented Generation</a>
             <a href="#topic-14" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">14. State of the Art Applications</a>
-            <a href="#topic-15" class="block py-2 px-3 rounded-md hover:bg-[#EAE3DA] transition-colors nav-link">15. Course Evaluation</a>
         </nav>
     </aside>
 
@@ -95,8 +94,8 @@
 
     <main class="flex-1 md:ml-72 p-6 md:p-10">
         <header class="mb-12">
-            <h1 class="text-4xl font-bold text-[#8A6D53]">Interactive Canvas of Natural Language Processing</h1>
-            <p class="mt-2 text-lg text-gray-600">Course AIMLCZG530: An explorable guide to core NLP concepts. Use the sidebar to navigate.</p>
+            <h1 class="text-4xl font-bold text-[#8A6D53]">Interactive Guide to Natural Language Processing</h1>
+            <p class="mt-2 text-lg text-gray-600">An explorable guide to core NLP concepts. Use the sidebar to navigate.</p>
         </header>
         
         <div id="dynamic-content" class="space-y-16">
@@ -389,46 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h4 class="font-bold text-lg">Chatbots & Virtual Assistants</h4>
                         <p class="text-sm">Simulating human conversation to assist users with tasks.</p>
                     </div>
-                </div>
-            </div>`
-        },
-        'topic-15': {
-            title: "15. Course Evaluation Scheme",
-            description: "The course will be evaluated through a combination of online quizzes, assignments, a mid-semester test, and a comprehensive final exam.",
-            html: `
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr>
-                                <th class="py-2 px-4 bg-gray-100 border-b">Component</th>
-                                <th class="py-2 px-4 bg-gray-100 border-b">Type</th>
-                                <th class="py-2 px-4 bg-gray-100 border-b">Weight</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="py-2 px-4 border-b">Quiz / Assignments</td>
-                                <td class="py-2 px-4 border-b">Online</td>
-                                <td class="py-2 px-4 border-b">30% (10% + 20%)</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b">Mid-Semester Test</td>
-                                <td class="py-2 px-4 border-b">Closed Book</td>
-                                <td class="py-2 px-4 border-b">30%</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b">Comprehensive Exam</td>
-                                <td class="py-2 px-4 border-b">Open Book</td>
-                                <td class="py-2 px-4 border-b">40%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                 <div class="mt-6">
-                    <h4 class="font-bold text-lg mb-2">Syllabus Coverage</h4>
-                    <p><strong>Mid-Semester Test:</strong> Topics from contact sessions 1 to 8.</p>
-                    <p><strong>Comprehensive Exam:</strong> All topics covered in the course.</p>
                 </div>
             </div>`
         }
