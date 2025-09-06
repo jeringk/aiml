@@ -45,6 +45,8 @@
             background-color: #fcfcfc;
             border-radius: 0.5rem;
             border: 1px solid #e5e7eb;
+            width: 100%;
+            height: auto;
         }
         .formula {
             background-color: #F5F2ED;
@@ -101,28 +103,37 @@
             text-decoration: underline;
             cursor: pointer;
         }
-        .algo-step {
-            padding-left: 1rem;
-            border-left: 3px solid #E9E4DB;
+        .code-block {
+            background-color: #F5F2ED;
+            padding: 1rem;
+            border-radius: 0.5rem;
             margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            text-align: left;
         }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body class="relative min-h-screen md:flex">
 
     <!-- Sidebar Navigation -->
-    <aside id="sidebar" class="w-64 flex-shrink-0 p-6 overflow-y-auto h-screen sticky top-0 border-r border-gray-200">
+    <aside id="sidebar" class="w-64 flex-shrink-0 p-6 overflow-y-auto h-full fixed top-0 left-0 z-40 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0">
         <h2 class="text-xl font-bold text-[#8A6D53] mb-6 px-4">DRL Guide</h2>
         <nav id="sidebar-nav" class="space-y-1">
             <!-- Navigation items will be injected by JS -->
         </nav>
     </aside>
 
+    <!-- Overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black opacity-50 z-30 hidden md:hidden"></div>
+
     <!-- Main Content -->
-    <main class="flex-1 p-8 lg:p-12 overflow-y-auto">
+    <main class="flex-1 p-4 sm:p-8 lg:p-12 overflow-y-auto">
         <header class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-            <h2 id="main-title" class="text-3xl font-bold text-gray-900"></h2>
+             <button id="hamburger-btn" class="md:hidden p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+             </button>
+            <h2 id="main-title" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900"></h2>
             <a href="https://jeringk.github.io/aiml" class="text-sm font-medium text-[#8A6D53] hover:underline">Home</a>
         </header>
         <div id="content-container">
@@ -214,7 +225,7 @@
                     </div>
                     <div class="card p-6 rounded-lg mt-6">
                         <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-4">Interactive Bandit Simulation (ε-Greedy)</h3>
-                        <div class="flex items-center space-x-4 mb-4">
+                        <div class="flex flex-wrap items-center gap-4 mb-4">
                             <label for="epsilon-slider" class="text-gray-600">Exploration Rate (ε):</label>
                             <input type="range" id="epsilon-slider" min="0" max="1" step="0.01" value="0.1" class="w-48">
                             <span id="epsilon-value" class="font-mono text-blue-600">0.10</span>
@@ -256,8 +267,8 @@
                     <div class="card p-6 rounded-lg mt-6">
                         <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-4">Interactive Gridworld</h3>
                         <p class="text-gray-600 mb-4">This Gridworld is an MDP. The agent learns the value of each state by iteratively applying the Bellman equation in an algorithm called Value Iteration.</p>
-                        <canvas id="gridworld-canvas" width="400" height="400"></canvas>
-                        <div class="mt-4 flex space-x-4">
+                        <canvas id="gridworld-canvas"></canvas>
+                        <div class="mt-4 flex flex-wrap gap-4">
                             <button id="gridworld-vi-btn" class="btn-primary font-semibold py-2 px-4 rounded">Run Value Iteration</button>
                             <button id="gridworld-reset-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded">Reset</button>
                         </div>
@@ -368,13 +379,13 @@
                     <div class="card p-6 rounded-lg mt-6">
                         <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-4">Interactive MC Example: Blackjack</h3>
                         <p class="text-gray-600 mb-4">Here, an agent learns to play Blackjack using Monte Carlo. It follows a simple policy (stick on 20 or 21, hit otherwise) and learns the value of each state by averaging returns over many games. The state is defined by the player's sum, the dealer's showing card, and whether the player has a usable ace.</p>
-                        <div class="flex items-center space-x-4 mb-4">
+                        <div class="flex flex-wrap items-center gap-4 mb-4">
                             <button id="blackjack-play1-btn" class="btn-primary font-semibold py-2 px-4 rounded">Play 1 Game</button>
                             <button id="blackjack-play100-btn" class="btn-secondary font-semibold py-2 px-4 rounded">Play 100 Games</button>
                             <button id="blackjack-reset-btn" class="btn-danger font-semibold py-2 px-4 rounded">Reset</button>
                             <span id="blackjack-games-played" class="text-gray-600">Games Played: 0</span>
                         </div>
-                        <canvas id="blackjack-canvas" width="600" height="350"></canvas>
+                        <canvas id="blackjack-canvas"></canvas>
                     </div>
                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="mc-quiz" data-correct-answer="c">
                         <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Quiz</h3>
@@ -421,7 +432,7 @@
                      <div class="card p-6 rounded-lg mt-6">
                         <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-4">Interactive TD Gridworld</h3>
                         <p class="text-gray-600 mb-4">Watch an agent learn a path through the grid using TD methods. It has no model; it learns from each step. Notice the difference in the learned Q-values between SARSA (which accounts for exploratory moves) and Q-Learning (which always learns about the greedy path).</p>
-                        <div class="flex items-center space-x-4 mb-4">
+                        <div class="flex flex-wrap items-center gap-4 mb-4">
                             <label class="font-medium">Algorithm:</label>
                             <select id="td-algo-select" class="rounded-md border-gray-300">
                                 <option value="sarsa">SARSA</option>
@@ -431,8 +442,8 @@
                              <button id="td-play-btn" class="btn-secondary font-semibold py-2 px-4 rounded">Auto-Play</button>
                             <button id="td-reset-btn" class="btn-danger font-semibold py-2 px-4 rounded">Reset</button>
                         </div>
-                        <div id="td-gridworld-container" class="relative" style="width: 400px; height: 400px;">
-                            <canvas id="td-gridworld-canvas" width="400" height="400"></canvas>
+                        <div id="td-gridworld-container" class="relative mx-auto" style="max-width: 400px;">
+                            <canvas id="td-gridworld-canvas"></canvas>
                         </div>
                          <div id="td-info" class="mt-2 text-sm text-gray-600"></div>
                     </div>
@@ -564,8 +575,8 @@
                     <div class="card p-6 rounded-lg mt-6">
                         <h3 class="text-xl font-semibold text-gray-900 mb-2">Interactive MCTS Animation</h3>
                         <p class="text-gray-600 mb-4">Watch the MCTS algorithm build a search tree step-by-step. Each iteration performs the four key steps to evaluate the best next move from the root node.</p>
-                        <canvas id="mcts-canvas" width="600" height="400"></canvas>
-                        <div class="mt-4 flex items-center space-x-4">
+                        <canvas id="mcts-canvas"></canvas>
+                        <div class="mt-4 flex flex-wrap items-center gap-4">
                             <button id="mcts-step-btn" class="btn-primary font-semibold py-2 px-4 rounded">Step</button>
                             <button id="mcts-play-btn" class="btn-secondary font-semibold py-2 px-4 rounded">Auto-Play</button>
                             <button id="mcts-reset-btn" class="btn-danger font-semibold py-2 px-4 rounded">Reset</button>
@@ -586,56 +597,73 @@
                     </div>
                 `},
                 { id: 'alphago', title: 'AlphaGo & MuZero', content: `
-                    <p class="text-lg text-gray-700 mb-6">This family of algorithms from DeepMind represents landmarks in the history of AI, combining deep learning with powerful search algorithms to achieve superhuman performance in complex strategy games.</p>
-                    <div class="space-y-8">
-                        <!-- AlphaGo -->
+                     <p class="text-lg text-gray-700 mb-6">These landmark systems from DeepMind showcase the rapid evolution of deep reinforcement learning, combining powerful search algorithms with deep neural networks to achieve superhuman performance in complex strategy games.</p>
+                     <div class="space-y-6">
                         <div class="card p-6 rounded-lg">
                             <h3 class="text-xl font-semibold text-gray-900 mb-2">AlphaGo: The Hybrid Approach</h3>
-                            <p class="text-gray-600">The first program to defeat a professional human Go player. It used a hybrid approach, learning from both human expert games and self-play.</p>
-                            <h4 class="font-semibold text-gray-800 mt-4">Key Components:</h4>
-                            <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
-                                <li><strong>Policy Network ($p_\\sigma$):</strong> A neural network trained via Supervised Learning on a dataset of human expert moves. It learns to predict which move a human would make in a given position. This is used to narrow the search space in MCTS.</li>
-                                <li><strong>Value Network ($v_\\theta$):</strong> A neural network trained to predict the winner from a given board position. It evaluates positions, reducing the need for MCTS to simulate all the way to the end of the game.</li>
-                                <li><strong>Reinforcement Learning:</strong> A second policy network ($p_\\rho$) was trained via RL self-play to improve upon the supervised model.</li>
-                                <li><strong>Monte Carlo Tree Search (MCTS):</strong> The core decision-making engine. MCTS uses the policy network to guide its search to promising moves and the value network to evaluate leaf nodes.</li>
-                            </ul>
-                            <h4 class="font-semibold text-gray-800 mt-4">Algorithm:</h4>
-                            <div class="algo-step"><strong>1. Supervised Learning Phase:</strong> Train the policy network $p_\\sigma$ on a large database of human games.</div>
-                            <div class="algo-step"><strong>2. Reinforcement Learning Phase:</strong> Initialize a new policy network $p_\\rho$ with the weights of $p_\\sigma$. Play games between current and previous versions of $p_\\rho$ and update its weights using policy gradients to maximize wins.</div>
-                             <div class="algo-step"><strong>3. Value Network Training:</strong> Train the value network $v_\\theta$ to predict the outcome of games played by the RL-trained policy network $p_\\rho$.</div>
-                             <div class="algo-step"><strong>4. MCTS Planning:</strong> At test time, use MCTS guided by both $p_\\rho$ and $v_\\theta$ to select the best move.</div>
-                        </div>
+                            <p class="text-gray-600">The first program to defeat a professional human Go player, AlphaGo used a combination of supervised learning from human expert games and reinforcement learning from self-play. Its architecture consisted of two main neural networks:</p>
+                             <ul class="list-disc list-inside text-gray-600 space-y-2 mt-4">
+                                <li><strong>Policy Network:</strong> Trained to predict the next move a human expert would make. This network was first trained on a large dataset of human games (Supervised Learning) and then refined by playing against older versions of itself (Reinforcement Learning).</li>
+                                <li><strong>Value Network:</strong> Trained to predict the outcome (win/loss) from any given board position. This helps the MCTS algorithm evaluate positions more efficiently than traditional rollouts.</li>
+                             </ul>
+                             <p class="text-gray-600 mt-2">During play, MCTS used the policy network to guide its search towards promising moves and the value network to evaluate board positions, making the search far more intelligent and efficient.</p>
+                             <div class="code-block">
+    1. Supervised Learning (SL) Policy Network (p_sigma):
+       - Train on a large dataset of human expert games.
+       - Goal: Predict the expert's move given a board state.
 
-                        <!-- AlphaGo Zero -->
-                        <div class="card p-6 rounded-lg">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">AlphaGo Zero: Learning from Scratch</h3>
-                            <p class="text-gray-600">A more powerful and elegant version that learned entirely from self-play (<em>tabula rasa</em>), without any human data, surpassing all previous versions.</p>
-                            <h4 class="font-semibold text-gray-800 mt-4">Key Innovations:</h4>
-                            <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
-                                <li><strong>No Human Data:</strong> Learned purely from self-play, starting from random moves. This allowed it to discover novel, superhuman strategies.</li>
-                                <li><strong>Single Unified Network:</strong> It uses a single neural network, $f_\\theta(s)$, that takes the board state $s$ and outputs both a policy (move probabilities $\\mathbf{p}$) and a value (a scalar win prediction $v$). This is more efficient and allows the policy and value to be learned together.</li>
-                                <li><strong>Simplified MCTS:</strong> The MCTS is guided solely by this unified network, removing the need for separate rollout simulations.</li>
-                            </ul>
-                            <h4 class="font-semibold text-gray-800 mt-4">Algorithm:</h4>
-                            <div class="algo-step"><strong>1. Self-Play:</strong> The current best network $f_\\theta$ plays games against itself. In each position, it runs an MCTS to select a move. The MCTS search results are stored as $(s, \\pi, z)$, where $\\pi$ is the improved search policy and $z$ is the game outcome.</div>
-                            <div class="algo-step"><strong>2. Network Training:</strong> A new network is trained on the data $(s, \\pi, z)$ collected from self-play. The loss function aims to make the network's output $(\\mathbf{p}, v)$ match the MCTS search results $(\\pi, z)$.</div>
-                            <div class="algo-step"><strong>3. Evaluation:</strong> The new network is evaluated against the current best. If it wins by a clear margin, it becomes the new best network for the next iteration of self-play.</div>
+    2. Reinforcement Learning (RL) Policy Network (p_rho):
+       - Initialize with the weights of the SL policy network.
+       - Play games between the current RL network and older versions.
+       - Update weights using policy gradients (REINFORCE) to maximize wins.
+
+    3. Value Network (v_theta):
+       - Generate a new dataset of self-play games using the RL policy network.
+       - Train the value network to predict the winner from game positions.
+       - Goal: Minimize error between predicted value and actual game outcome.
+
+    4. Monte Carlo Tree Search (MCTS) for Game Play:
+       - Use the RL policy network to select promising moves (Expansion).
+       - Use the Value network to evaluate leaf nodes, reducing search depth.
+       - Select the final move based on the most visited path in the tree.
+                            </div>
                         </div>
-                        
-                        <!-- MuZero -->
                         <div class="card p-6 rounded-lg">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">MuZero: Mastering Games Without Rules</h3>
-                            <p class="text-gray-600">The most general version. It achieves superhuman performance in Go, chess, shogi, and Atari games without being told the rules of the environment.</p>
-                            <h4 class="font-semibold text-gray-800 mt-4">Key Innovation:</h4>
-                             <ul class="list-disc list-inside text-gray-600 space-y-2 mt-2">
-                                <li><strong>Learned Model:</strong> MuZero does not have access to a simulator or the game's rules. Instead, it learns its own model of the environment's dynamics. This model is focused only on the aspects relevant for planning.</li>
-                            </ul>
-                             <h4 class="font-semibold text-gray-800 mt-4">Algorithm (Conceptual):</h4>
-                            <p class="text-gray-600">For each move, MuZero uses MCTS. When the MCTS needs to evaluate a new, hypothetical state, it uses three learned functions:</p>
-                             <div class="algo-step"><strong>1. Representation Function ($h$):</strong> Maps a history of observations to a hidden state $s_0$.</div>
-                            <div class="algo-step"><strong>2. Dynamics Function ($g$):</strong> Takes a state and an action to predict the next hidden state, reward, and policy/value: $s_{k}, r_k, p_k, v_k = g(s_{k-1}, a_k)$. This is the learned model.</div>
-                             <div class="algo-step"><strong>3. Prediction Function ($f$):</strong> Takes a hidden state and predicts the policy and value: $p_k, v_k = f(s_k)$.</div>
-                            <p class="text-gray-600 mt-2">By repeatedly applying the dynamics function $g$ inside its search, MuZero can "look ahead" and plan effectively using its own internal model of the world.</p>
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">AlphaGo Zero: Learning from Scratch</h3>
+                             <p class="text-gray-600">AlphaGo Zero surpassed its predecessor by learning entirely through self-play, without any human data. It started with a randomly initialized network and learned the game from first principles. Its key innovation was a single, powerful neural network that combined the policy and value functions. This network takes the board state as input and outputs:</p>
+                             <ul class="list-disc list-inside text-gray-600 space-y-2 mt-4">
+                                <li>A <strong>policy vector</strong> $\\mathbf{p}$, representing the probability of playing each possible move.</li>
+                                <li>A scalar <strong>value</strong> $v$, estimating the probability of the current player winning.</li>
+                             </ul>
+                             <p class="text-gray-600 mt-2">This single network guided a more efficient MCTS. The policy output was used to direct the search, and the value output was used to evaluate leaf nodes, completely replacing the costly Monte Carlo rollouts used in the original AlphaGo.</p>
+                            <div class="code-block">
+    1. Initialize network weights θ randomly.
+    2. Loop forever:
+    3.   Play a game vs. itself using MCTS guided by the network(θ).
+    4.   Store game data (state, MCTS_policy, winner).
+    5.   Sample a minibatch of data from recent games.
+    6.   Train network(θ) to match the MCTS policy and game winner.
+                            </div>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                             <h3 class="text-xl font-semibold text-gray-900 mb-2">MuZero: Learning the Rules</h3>
+                             <p class="text-gray-600">MuZero is the most general of the three. It achieves superhuman performance in Go, chess, shogi, and Atari games without being told the rules. Its breakthrough was to learn its own model of the environment dynamics, but only the aspects relevant for planning.</p>
+                             <p class="text-gray-600 mt-2">It learns three functions:</p>
+                             <ul class="list-disc list-inside text-gray-600 space-y-2 mt-4">
+                                <li><strong>Representation ($h$):</strong> Maps a history of observations to a hidden state.</li>
+                                <li><strong>Dynamics ($g$):</strong> Predicts the next reward and hidden state given a state and action. $r_k, s_k = g(s_{k-1}, a_k)$.</li>
+                                <li><strong>Prediction ($f$):</strong> Predicts the policy and value from a hidden state. $\\mathbf{p}_k, v_k = f(s_k)$.</li>
+                             </ul>
+                            <p class="text-gray-600 mt-2">The MCTS search in MuZero operates entirely within this learned, latent space. It can "imagine" future sequences of moves using its dynamics and prediction functions to find the best path forward, making it a powerful model-based RL algorithm that learns its own model.</p>
+                             <div class="code-block">
+    1. Initialize network weights θ (for h, g, f) randomly.
+    2. Loop forever:
+    3.   Play a game, at each step t:
+    4.     Run MCTS using the learned model (h, g, f) to select action.
+    5.   Store the full game trajectory.
+    6.   Sample a position from the game.
+    7.   Train the network(θ) to predict the observed policy, value, and rewards.
+                             </div>
                         </div>
                     </div>
                     <div class="mt-6 card p-6 rounded-lg quiz-container" data-quiz-id="alphago-quiz" data-correct-answer="b">
@@ -944,6 +972,20 @@
                     displayMode: true
                 });
             });
+            
+            // --- Mobile Sidebar Logic ---
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+
+            const toggleSidebar = () => {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            };
+
+            hamburgerBtn.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
 
             const navLinks = document.querySelectorAll('.sidebar-item');
             const contentSections = document.querySelectorAll('.content-section');
@@ -971,12 +1013,25 @@
                     });
                 }
                 
-                // Initialize interactive canvas if it's visible
-                if (targetId === 'mab') initBanditProblem();
-                if (targetId === 'mdp') initGridworld();
-                if (targetId === 'mc') initBlackjackMC();
-                if (targetId === 'td') initTDGridworld();
-                if (targetId === 'mcts') initMCTSAnimation();
+                // Initialize or resize interactive canvas if it's visible
+                 const activeCanvasId = `${targetId}-canvas`;
+                 const activeCanvas = document.getElementById(activeCanvasId);
+                 if(activeCanvas) {
+                    if (targetId === 'mab' && !activeCanvas.dataset.initialized) initBanditProblem();
+                    if (targetId === 'mdp' && !activeCanvas.dataset.initialized) initGridworld();
+                    if (targetId === 'mc' && !activeCanvas.dataset.initialized) initBlackjackMC();
+                    if (targetId === 'td' && !activeCanvas.dataset.initialized) initTDGridworld();
+                    if (targetId === 'mcts' && !activeCanvas.dataset.initialized) initMCTSAnimation();
+                    
+                    // Trigger resize for the active canvas
+                    window.dispatchEvent(new Event('resize'));
+                 }
+
+
+                // Close sidebar on mobile after navigation
+                if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                    toggleSidebar();
+                }
             }
 
             mainContentContainer.addEventListener('click', (e) => {
@@ -1027,11 +1082,45 @@
             // Initial state and initial render
             switchTab('intro-rl');
 
+            // --- DEBOUNCE FOR RESIZE ---
+            function debounce(func, wait, immediate) {
+                var timeout;
+                return function() {
+                    var context = this, args = arguments;
+                    var later = function() {
+                        timeout = null;
+                        if (!immediate) func.apply(context, args);
+                    };
+                    var callNow = immediate && !timeout;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                    if (callNow) func.apply(context, args);
+                };
+            };
+            
+            const onResize = debounce(() => {
+                const activeCanvas = document.querySelector('.content-section.active canvas');
+                if(!activeCanvas) return;
+
+                const id = activeCanvas.id.split('-')[0];
+                if(id === 'gridworld') initGridworld(true);
+                if(id === 'blackjack') initBlackjackMC(true);
+                if(id === 'td') initTDGridworld(true);
+                if(id === 'mcts') initMCTSAnimation(true);
+
+            }, 250);
+
+            window.addEventListener('resize', onResize);
+
+
             // --- Multi-Armed Bandit ---
-            function initBanditProblem() {
+            function initBanditProblem(isResize = false) {
                 const armsContainer = document.getElementById('bandit-arms-container');
-                if (!armsContainer || armsContainer.dataset.initialized) return;
+                if (!armsContainer || (armsContainer.dataset.initialized && !isResize)) return;
                 armsContainer.dataset.initialized = 'true';
+                // This one is flexbox-based, no canvas, so no resize logic needed.
+                if(isResize) return; 
+                
                 let intervalId = null;
 
                 const NUM_ARMS = 5;
@@ -1070,7 +1159,7 @@
                         armWrapper.innerHTML = `
                             <div class="text-sm text-gray-600 mb-1">Pulls: <span id="pulls-${i}">0</span></div>
                             <div class="text-sm font-mono text-blue-600 mb-1">Q(a): <span id="q-val-${i}">0.00</span></div>
-                            <div class="w-16 h-4/5 bg-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-300 relative flex items-end justify-center" id="arm-${i}">
+                            <div class="w-12 sm:w-16 h-4/5 bg-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-300 relative flex items-end justify-center" id="arm-${i}">
                                <div class="bg-blue-500 w-full rounded-t-lg" style="height: 0%;"></div>
                             </div>
                         `;
@@ -1078,7 +1167,14 @@
                         document.getElementById(`arm-${i}`).addEventListener('click', () => chooseAndPull(i));
                     }
                     updateDisplay();
-                    autoPlay();
+                    if(window.banditInterval) clearInterval(window.banditInterval);
+                    window.banditInterval = setInterval(() => {
+                        if (document.getElementById('bandit-arms-container')) {
+                            chooseAndPull();
+                        } else {
+                            clearInterval(window.banditInterval);
+                        }
+                    }, 100);
                 }
 
                 function chooseAndPull(armIndex = -1) {
@@ -1112,44 +1208,38 @@
                     totalRewardEl.textContent = totalReward;
                     totalPullsEl.textContent = totalPulls;
                 }
-
-                function autoPlay() {
-                    intervalId = setInterval(() => {
-                        if (document.getElementById('bandit-arms-container')) {
-                            chooseAndPull();
-                        } else {
-                            clearInterval(intervalId);
-                        }
-                    }, 100);
-                }
+                
                 setup();
             }
 
             // --- Monte Carlo Blackjack ---
-            function initBlackjackMC() {
+            let blackjackState = {};
+            function initBlackjackMC(isResize = false) {
                 const canvas = document.getElementById('blackjack-canvas');
-                if (!canvas || canvas.dataset.initialized) return;
-                canvas.dataset.initialized = 'true';
-
-                const ctx = canvas.getContext('2d');
-                const play1Btn = document.getElementById('blackjack-play1-btn');
-                const play100Btn = document.getElementById('blackjack-play100-btn');
-                const resetBtn = document.getElementById('blackjack-reset-btn');
-                const gamesPlayedEl = document.getElementById('blackjack-games-played');
+                if (!canvas || (canvas.dataset.initialized && !isResize)) return;
                 
-                let V = {}; // State-value function: V[state_string] = { sum: N, count: N }
-                let gamesPlayed = 0;
-
-                const reset = () => {
-                    V = {};
-                    gamesPlayed = 0;
-                    gamesPlayedEl.textContent = `Games Played: 0`;
-                    drawValueFunction();
-                };
+                if(!isResize) {
+                    canvas.dataset.initialized = 'true';
+                    blackjackState = {
+                        V: {},
+                        gamesPlayed: 0
+                    };
+                    const play1Btn = document.getElementById('blackjack-play1-btn');
+                    const play100Btn = document.getElementById('blackjack-play100-btn');
+                    const resetBtn = document.getElementById('blackjack-reset-btn');
+                    
+                    play1Btn.onclick = () => runMultipleEpisodes(1);
+                    play100Btn.onclick = () => runMultipleEpisodes(100);
+                    resetBtn.onclick = () => {
+                         blackjackState.V = {};
+                         blackjackState.gamesPlayed = 0;
+                         drawValueFunction();
+                    };
+                }
                 
                 const getCard = () => {
                     let card = Math.min(10, Math.floor(Math.random() * 13) + 1);
-                    return card === 1 ? 11 : card; // Ace is 11
+                    return card === 1 ? 11 : card;
                 };
 
                 const getHandSum = (hand) => {
@@ -1165,139 +1255,134 @@
                 const runEpisode = () => {
                     let playerHand = [getCard(), getCard()];
                     let dealerHand = [getCard(), getCard()];
-                    let episode = []; // Store (state, action, reward) tuples
-
-                    // Player's turn
+                    let episode = []; 
                     while(true) {
                         let playerSum = getHandSum(playerHand);
-                        if(playerSum > 21) break; // Player busts
-                        
+                        if(playerSum > 21) break; 
                         let usableAce = playerHand.includes(11) && getHandSum(playerHand.map(c => c === 11 ? 1 : c)) <= 10;
                         let state = `${playerSum}-${dealerHand[0]}-${usableAce}`;
-                        
-                        // Policy: stick on 20 or 21, otherwise hit
                         let action = playerSum >= 20 ? 'stick' : 'hit';
                         episode.push({ state });
-
                         if(action === 'stick') break;
                         playerHand.push(getCard());
                     }
                     
-                    // Dealer's turn
                     let playerSum = getHandSum(playerHand);
                     let reward = 0;
                     if(playerSum > 21) {
-                        reward = -1; // Player busts
+                        reward = -1;
                     } else {
-                        while(getHandSum(dealerHand) < 17) {
-                            dealerHand.push(getCard());
-                        }
+                        while(getHandSum(dealerHand) < 17) dealerHand.push(getCard());
                         let dealerSum = getHandSum(dealerHand);
-                        if(dealerSum > 21 || playerSum > dealerSum) {
-                            reward = 1; // Dealer busts or player wins
-                        } else if(playerSum < dealerSum) {
-                            reward = -1; // Dealer wins
-                        } else {
-                            reward = 0; // Draw
-                        }
+                        if(dealerSum > 21 || playerSum > dealerSum) reward = 1;
+                        else if(playerSum < dealerSum) reward = -1;
+                        else reward = 0;
                     }
 
-                    // Update V using first-visit MC
                     const visitedStates = new Set();
                     for(const step of episode) {
                         if(!visitedStates.has(step.state)) {
-                            if(!V[step.state]) V[step.state] = { sum: 0, count: 0 };
-                            V[step.state].sum += reward;
-                            V[step.state].count++;
+                            if(!blackjackState.V[step.state]) blackjackState.V[step.state] = { sum: 0, count: 0 };
+                            blackjackState.V[step.state].sum += reward;
+                            blackjackState.V[step.state].count++;
                             visitedStates.add(step.state);
                         }
                     }
-                    gamesPlayed++;
+                    blackjackState.gamesPlayed++;
                 };
 
                 const runMultipleEpisodes = (count) => {
                     for(let i=0; i<count; i++) runEpisode();
-                    gamesPlayedEl.textContent = `Games Played: ${gamesPlayed}`;
                     drawValueFunction();
                 };
 
                 const drawValueFunction = () => {
+                    const gamesPlayedEl = document.getElementById('blackjack-games-played');
+                    gamesPlayedEl.textContent = `Games Played: ${blackjackState.gamesPlayed}`;
+                    const ctx = canvas.getContext('2d');
+                    
+                    const containerWidth = canvas.parentElement.clientWidth;
+                    const isMobile = containerWidth < 600;
+
+                    canvas.width = containerWidth;
+                    canvas.height = isMobile ? containerWidth * 1.2 : containerWidth / 2;
+
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     
-                    const drawGrid = (x_offset, y_offset, title) => {
+                    const drawGrid = (x_offset, y_offset, grid_width, title) => {
                         ctx.fillStyle = '#3D4451';
                         ctx.font = 'bold 14px Inter';
                         ctx.textAlign = 'center';
-                        ctx.fillText(title, x_offset + 125, y_offset - 10);
+                        ctx.fillText(title, x_offset + grid_width / 2, y_offset - 15);
 
-                        const playerSums = Array.from({length: 10}, (_, i) => 21 - i); // 21 down to 12
-                        const dealerCards = Array.from({length: 10}, (_, i) => i + 1); // A, 2..10
+                        const playerSums = Array.from({length: 10}, (_, i) => 21 - i); 
+                        const dealerCards = Array.from({length: 10}, (_, i) => i + 1);
                         
-                        const colWidth = 25;
-                        const rowHeight = 25;
+                        const colWidth = grid_width / 10;
+                        const rowHeight = colWidth;
 
                         for(let r=0; r < playerSums.length; r++) {
                              for(let c=0; c < dealerCards.length; c++) {
                                 let stateStr = `${playerSums[r]}-${dealerCards[c] === 1 ? 11 : dealerCards[c]}-${title.includes('Usable Ace')}`;
-                                let value = V[stateStr] ? V[stateStr].sum / V[stateStr].count : 0;
-                                
+                                let value = blackjackState.V[stateStr] ? blackjackState.V[stateStr].sum / blackjackState.V[stateStr].count : 0;
                                 let color = 'rgba(200, 200, 200, 0.5)';
-                                if(value > 0) color = `rgba(74, 222, 128, ${Math.abs(value)})`; // green
-                                else if(value < 0) color = `rgba(248, 113, 113, ${Math.abs(value)})`; // red
+                                if(value > 0) color = `rgba(74, 222, 128, ${Math.abs(value)})`;
+                                else if(value < 0) color = `rgba(248, 113, 113, ${Math.abs(value)})`;
                                 
                                 ctx.fillStyle = color;
                                 ctx.fillRect(x_offset + c * colWidth, y_offset + r * rowHeight, colWidth, rowHeight);
                                 ctx.strokeStyle = '#e5e7eb';
                                 ctx.strokeRect(x_offset + c * colWidth, y_offset + r * rowHeight, colWidth, rowHeight);
-
-                                ctx.fillStyle = Math.abs(value) > 0.5 ? 'white' : 'black';
-                                ctx.font = '9px Inter';
-                                ctx.fillText(value.toFixed(2), x_offset + c * colWidth + colWidth/2, y_offset + r * rowHeight + rowHeight/2);
                              }
                         }
-                        // Draw labels
-                        ctx.fillStyle = '#3D4451';
-                        ctx.font = '11px Inter';
-                        for(let r=0; r < playerSums.length; r++) {
-                            ctx.fillText(playerSums[r], x_offset - 15, y_offset + r*rowHeight + rowHeight/2);
-                        }
-                         for(let c=0; c < dealerCards.length; c++) {
-                            ctx.fillText(dealerCards[c] === 1 ? 'A' : dealerCards[c], x_offset + c * colWidth + colWidth/2, y_offset + playerSums.length*rowHeight + 10);
-                        }
                     };
-
-                    drawGrid(40, 40, "With Usable Ace");
-                    drawGrid(330, 40, "No Usable Ace");
+                    if(isMobile) {
+                        const gridWidth = containerWidth * 0.9;
+                        const xOffset = (containerWidth - gridWidth) / 2;
+                        drawGrid(xOffset, 40, gridWidth, "With Usable Ace");
+                        drawGrid(xOffset, 40 + gridWidth * 1.1, gridWidth, "No Usable Ace");
+                    } else {
+                        const gridWidth = (containerWidth / 2) * 0.8;
+                        drawGrid(containerWidth * 0.05, 40, gridWidth, "With Usable Ace");
+                        drawGrid(containerWidth * 0.55, 40, gridWidth, "No Usable Ace");
+                    }
                 };
-
-                play1Btn.addEventListener('click', () => runMultipleEpisodes(1));
-                play100Btn.addEventListener('click', () => runMultipleEpisodes(100));
-                resetBtn.addEventListener('click', reset);
                 
-                reset();
+                drawValueFunction();
             }
 
             // --- Gridworld DP ---
-            function initGridworld() {
+            let dpState = {};
+            function initGridworld(isResize = false) {
                 const canvas = document.getElementById('gridworld-canvas');
-                if (!canvas || canvas.dataset.initialized) return;
-                canvas.dataset.initialized = 'true';
-                let intervalId = null;
+                if (!canvas || (canvas.dataset.initialized && !isResize)) return;
                 
-                const ctx = canvas.getContext('2d');
                 const GRID_SIZE = 5;
-                const CELL_SIZE = canvas.width / GRID_SIZE;
-                
                 const grid = [[0, 0, 0, 0, 1], [0, -1, 0, 0, 0], [0, 0, 0, -1, 0], [0, -1, 0, 0, 0], [0, 0, 0, 0, 0]];
-                let values = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
-                let iterationCount = 0;
                 const GAMMA = 0.9;
 
-                const viButton = document.getElementById('gridworld-vi-btn');
-                const resetButton = document.getElementById('gridworld-reset-btn');
-                const iterationsEl = document.getElementById('gridworld-iterations');
+                if (!isResize) {
+                    canvas.dataset.initialized = 'true';
+                    dpState = {
+                        values: Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0)),
+                        iterationCount: 0,
+                        intervalId: null
+                    };
 
-                function drawGrid() {
+                    const viButton = document.getElementById('gridworld-vi-btn');
+                    const resetButton = document.getElementById('gridworld-reset-btn');
+                    viButton.onclick = runValueIteration;
+                    resetButton.onclick = reset;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.width;
+                const CELL_SIZE = canvas.width / GRID_SIZE;
+                
+                const draw = () => {
+                    const iterationsEl = document.getElementById('gridworld-iterations');
+                    iterationsEl.textContent = `Iterations: ${dpState.iterationCount}`;
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     for (let r = 0; r < GRID_SIZE; r++) {
                         for (let c = 0; c < GRID_SIZE; c++) {
@@ -1312,16 +1397,16 @@
                      for (let r = 0; r < GRID_SIZE; r++) {
                         for (let c = 0; c < GRID_SIZE; c++) {
                             ctx.fillStyle = '#1f2937';
-                            ctx.font = '16px Inter';
+                            ctx.font = `${Math.max(10, CELL_SIZE/5)}px Inter`;
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(values[r][c].toFixed(2), c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2);
+                            ctx.fillText(dpState.values[r][c].toFixed(2), c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2);
                         }
                     }
                 }
                 
                 function valueIterationStep() {
-                    let newValues = JSON.parse(JSON.stringify(values));
+                    let newValues = JSON.parse(JSON.stringify(dpState.values));
                     for (let r = 0; r < GRID_SIZE; r++) {
                         for (let c = 0; c < GRID_SIZE; c++) {
                              if (grid[r][c] !== 0) continue;
@@ -1333,118 +1418,118 @@
                                 if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
                                      if(grid[nr][nc] === 1) reward = 10;
                                      if(grid[nr][nc] === -1) reward = -10;
-                                     nextValue = values[nr][nc];
+                                     nextValue = dpState.values[nr][nc];
                                 } else {
                                     reward = -1;
-                                    nextValue = values[r][c];
+                                    nextValue = dpState.values[r][c];
                                 }
                                 actionValues.push(reward + GAMMA * nextValue);
                             }
                             newValues[r][c] = Math.max(...actionValues);
                         }
                     }
-                    values = newValues;
-                    iterationCount++;
-                    iterationsEl.textContent = `Iterations: ${iterationCount}`;
-                    drawGrid();
+                    dpState.values = newValues;
+                    dpState.iterationCount++;
+                    draw();
                 }
 
                 function runValueIteration() {
-                     if(intervalId) clearInterval(intervalId);
-                     intervalId = setInterval(() => {
-                        if (iterationCount < 50 && document.getElementById('gridworld-canvas')) {
+                     if(dpState.intervalId) clearInterval(dpState.intervalId);
+                     dpState.intervalId = setInterval(() => {
+                        if (dpState.iterationCount < 50 && document.getElementById('gridworld-canvas')) {
                              valueIterationStep();
                         } else {
-                            clearInterval(intervalId);
+                            clearInterval(dpState.intervalId);
                         }
                     }, 100);
                 }
 
                 function reset() {
-                    if(intervalId) clearInterval(intervalId);
-                    values = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
-                    iterationCount = 0;
-                    iterationsEl.textContent = `Iterations: ${iterationCount}`;
-                    drawGrid();
+                    if(dpState.intervalId) clearInterval(dpState.intervalId);
+                    dpState.values = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+                    dpState.iterationCount = 0;
+                    draw();
                 }
 
-                viButton.addEventListener('click', runValueIteration);
-                resetButton.addEventListener('click', reset);
-
-                drawGrid();
+                draw();
             }
 
             // --- Gridworld TD ---
-            function initTDGridworld() {
+            let tdState = {};
+            function initTDGridworld(isResize = false) {
                 const canvas = document.getElementById('td-gridworld-canvas');
-                if (!canvas || canvas.dataset.initialized) return;
-                canvas.dataset.initialized = 'true';
+                if (!canvas || (canvas.dataset.initialized && !isResize)) return;
 
-                const container = document.getElementById('td-gridworld-container');
-                const ctx = canvas.getContext('2d');
-                const algoSelect = document.getElementById('td-algo-select');
-                const stepBtn = document.getElementById('td-step-btn');
-                const playBtn = document.getElementById('td-play-btn');
-                const resetBtn = document.getElementById('td-reset-btn');
-                const infoEl = document.getElementById('td-info');
-
-                let playInterval = null;
                 const GRID_SIZE = 5;
-                const CELL_SIZE = canvas.width / GRID_SIZE;
                 const grid = [[0, 0, 0, 0, 1], [0, -1, 0, 0, 0], [0, 0, 0, -1, 0], [0, -1, 0, 0, 0], [0, 0, 0, 0, 0]];
-                
-                let Q = {}; // Q-table: Q['r,c'] = [q_up, q_down, q_left, q_right]
-                let agentPos = { r: 4, c: 0 };
-                
+                const actions = [[-1, 0], [1, 0], [0, -1], [0, 1]]; 
                 const ALPHA = 0.1;
                 const GAMMA = 0.9;
                 let EPSILON = 0.1;
-                let currentAlgorithm = 'sarsa';
 
-                const actions = [[-1, 0], [1, 0], [0, -1], [0, 1]]; // Up, Down, Left, Right
+                if(!isResize) {
+                    canvas.dataset.initialized = 'true';
+                    tdState = {
+                        Q: {},
+                        agentPos: { r: 4, c: 0 },
+                        currentAlgorithm: 'sarsa',
+                        playInterval: null
+                    };
+
+                    const algoSelect = document.getElementById('td-algo-select');
+                    const stepBtn = document.getElementById('td-step-btn');
+                    const playBtn = document.getElementById('td-play-btn');
+                    const resetBtn = document.getElementById('td-reset-btn');
+
+                    algoSelect.onchange = (e) => { tdState.currentAlgorithm = e.target.value; reset(); };
+                    stepBtn.onclick = step;
+                    playBtn.onclick = togglePlay;
+                    resetBtn.onclick = reset;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.width;
+                const CELL_SIZE = canvas.width / GRID_SIZE;
 
                 const getQ = (r, c) => {
                     const key = `${r},${c}`;
-                    if (!Q[key]) Q[key] = [0, 0, 0, 0];
-                    return Q[key];
+                    if (!tdState.Q[key]) tdState.Q[key] = [0, 0, 0, 0];
+                    return tdState.Q[key];
                 };
 
                 const chooseAction = (r, c) => {
-                    if (Math.random() < EPSILON) {
-                        return Math.floor(Math.random() * 4); // Explore
-                    }
+                    if (Math.random() < EPSILON) return Math.floor(Math.random() * 4);
                     const q_values = getQ(r, c);
                     const maxQ = Math.max(...q_values);
                     const bestActions = q_values.map((q, i) => q === maxQ ? i : -1).filter(i => i !== -1);
-                    return bestActions[Math.floor(Math.random() * bestActions.length)]; // Exploit (break ties randomly)
+                    return bestActions[Math.floor(Math.random() * bestActions.length)];
                 };
 
-                const reset = () => {
-                    if(playInterval) clearInterval(playInterval);
-                    playBtn.textContent = 'Auto-Play';
-                    Q = {};
-                    agentPos = { r: 4, c: 0 };
-                    infoEl.textContent = 'Ready to learn!';
+                function reset() {
+                    if(tdState.playInterval) clearInterval(tdState.playInterval);
+                    tdState.playInterval = null;
+                    document.getElementById('td-play-btn').textContent = 'Auto-Play';
+                    tdState.Q = {};
+                    tdState.agentPos = { r: 4, c: 0 };
                     draw();
                 };
 
-                const step = () => {
-                    const { r, c } = agentPos;
-                    if (grid[r][c] !== 0) { // Terminal state
-                        agentPos = { r: 4, c: 0 }; // Reset episode
-                        infoEl.textContent = 'Episode finished. Agent reset.';
+                function step() {
+                    const { r, c } = tdState.agentPos;
+                    if (grid[r][c] !== 0) { 
+                        tdState.agentPos = { r: 4, c: 0 }; 
                         draw();
                         return;
                     }
 
                     const action_idx = chooseAction(r, c);
                     const [dr, dc] = actions[action_idx];
-                    let next_r = r + dr;
-                    let next_c = c + dc;
+                    let next_r = r + dr, next_c = c + dc;
                     let reward = -0.1;
 
                     if (next_r < 0 || next_r >= GRID_SIZE || next_c < 0 || next_c >= GRID_SIZE) {
-                        next_r = r; next_c = c; reward = -1; // Bumped into wall
+                        next_r = r; next_c = c; reward = -1;
                     }
                      if (grid[next_r][next_c] === 1) reward = 10;
                      if (grid[next_r][next_c] === -1) reward = -10;
@@ -1452,53 +1537,38 @@
                     const q_current = getQ(r, c)[action_idx];
                     let td_target;
                     
-                    if (currentAlgorithm === 'sarsa') {
+                    if (tdState.currentAlgorithm === 'sarsa') {
                         const next_action_idx = chooseAction(next_r, next_c);
                         const q_next = getQ(next_r, next_c)[next_action_idx];
                         td_target = reward + GAMMA * q_next;
-                         infoEl.textContent = `SARSA: Took action ${action_idx}, will take ${next_action_idx} next.`;
                     } else { // Q-Learning
                         const q_next_values = getQ(next_r, next_c);
-                        const max_q_next = Math.max(...q_next_values);
-                        td_target = reward + GAMMA * max_q_next;
-                        infoEl.textContent = `Q-Learning: Took action ${action_idx}, but updated with max Q-value.`;
+                        td_target = reward + GAMMA * Math.max(...q_next_values);
                     }
-                    
-                    const new_q = q_current + ALPHA * (td_target - q_current);
-                    getQ(r, c)[action_idx] = new_q;
-                    
-                    agentPos = { r: next_r, c: next_c };
+                    getQ(r, c)[action_idx] += ALPHA * (td_target - q_current);
+                    tdState.agentPos = { r: next_r, c: next_c };
                     draw();
                 };
 
                 const draw = () => {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Draw Q-values first
                     for (let r = 0; r < GRID_SIZE; r++) {
                         for (let c = 0; c < GRID_SIZE; c++) {
-                            const q_values = getQ(r, c);
-                            const maxQ = Math.max(...q_values);
-                            const minQ = Math.min(...q_values);
-
-                            for (let i = 0; i < 4; i++) {
-                                const q = q_values[i];
+                             const q_values = getQ(r,c);
+                             const maxQ = Math.max(...q_values);
+                             const minQ = Math.min(...q_values);
+                             for(let i=0; i<4; i++){
                                 let colorVal = 0;
-                                if (maxQ > minQ) {
-                                    colorVal = (q - minQ) / (maxQ - minQ);
-                                }
-                                ctx.fillStyle = `rgba(74, 144, 226, ${colorVal * 0.7})`; // Blue intensity
-                                
+                                if(maxQ > minQ) colorVal = (q_values[i] - minQ) / (maxQ - minQ);
+                                ctx.fillStyle = `rgba(74, 144, 226, ${colorVal * 0.7})`;
                                 const [dr, dc] = actions[i];
-                                if(dr === -1) ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE / 3); // Up
-                                if(dr === 1) ctx.fillRect(c * CELL_SIZE, (r + 2/3) * CELL_SIZE, CELL_SIZE, CELL_SIZE / 3); // Down
-                                if(dc === -1) ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE / 3, CELL_SIZE); // Left
-                                if(dc === 1) ctx.fillRect((c + 2/3) * CELL_SIZE, r * CELL_SIZE, CELL_SIZE/3, CELL_SIZE); // Right
-                            }
+                                if(dr === -1) ctx.fillRect(c*CELL_SIZE, r*CELL_SIZE, CELL_SIZE, CELL_SIZE/3);
+                                if(dr === 1) ctx.fillRect(c*CELL_SIZE, (r+2/3)*CELL_SIZE, CELL_SIZE, CELL_SIZE/3);
+                                if(dc === -1) ctx.fillRect(c*CELL_SIZE, r*CELL_SIZE, CELL_SIZE/3, CELL_SIZE);
+                                if(dc === 1) ctx.fillRect((c+2/3)*CELL_SIZE, r*CELL_SIZE, CELL_SIZE/3, CELL_SIZE);
+                             }
                         }
                     }
-
-                    // Draw grid lines and terminals
                     for (let r = 0; r < GRID_SIZE; r++) {
                         for (let c = 0; c < GRID_SIZE; c++) {
                             ctx.strokeStyle = '#e5e7eb';
@@ -1512,78 +1582,68 @@
                              }
                         }
                     }
-
-                    // Draw agent
                     ctx.fillStyle = '#D0021B';
                     ctx.beginPath();
-                    ctx.arc(agentPos.c * CELL_SIZE + CELL_SIZE/2, agentPos.r * CELL_SIZE + CELL_SIZE/2, CELL_SIZE/3, 0, 2*Math.PI);
+                    ctx.arc(tdState.agentPos.c * CELL_SIZE + CELL_SIZE/2, tdState.agentPos.r * CELL_SIZE + CELL_SIZE/2, CELL_SIZE/4, 0, 2*Math.PI);
                     ctx.fill();
                 };
 
                 const togglePlay = () => {
-                    if (playInterval) {
-                        clearInterval(playInterval);
-                        playInterval = null;
-                        playBtn.textContent = 'Auto-Play';
+                    if (tdState.playInterval) {
+                        clearInterval(tdState.playInterval);
+                        tdState.playInterval = null;
+                        document.getElementById('td-play-btn').textContent = 'Auto-Play';
                     } else {
-                        playInterval = setInterval(step, 100);
-                        playBtn.textContent = 'Pause';
+                        tdState.playInterval = setInterval(step, 100);
+                        document.getElementById('td-play-btn').textContent = 'Pause';
                     }
                 }
-
-                algoSelect.addEventListener('change', (e) => {
-                    currentAlgorithm = e.target.value;
-                    reset();
-                });
-                stepBtn.addEventListener('click', step);
-                playBtn.addEventListener('click', togglePlay);
-                resetBtn.addEventListener('click', reset);
-                
-                reset();
+                draw();
             }
 
             // --- MCTS Animation ---
-            function initMCTSAnimation() {
+             let mctsState = {};
+            function initMCTSAnimation(isResize = false) {
                 const canvas = document.getElementById('mcts-canvas');
-                if (!canvas || canvas.dataset.initialized) return;
-                canvas.dataset.initialized = 'true';
-
-                const ctx = canvas.getContext('2d');
-                const statusEl = document.getElementById('mcts-status');
-                const stepBtn = document.getElementById('mcts-step-btn');
-                const playBtn = document.getElementById('mcts-play-btn');
-                const resetBtn = document.getElementById('mcts-reset-btn');
-
-                let tree = null;
-                let nodeIdCounter = 0;
-                let isPlaying = false;
-                let playInterval = null;
+                if (!canvas || (canvas.dataset.initialized && !isResize)) return;
 
                 const NODE_RADIUS = 25;
-                const EXPLORATION_CONSTANT = 1.41; // sqrt(2)
+                const EXPLORATION_CONSTANT = 1.41;
+
+                if (!isResize) {
+                     canvas.dataset.initialized = 'true';
+                     mctsState = {
+                        tree: null,
+                        nodeIdCounter: 0,
+                        isPlaying: false,
+                        playInterval: null
+                     };
+                    const stepBtn = document.getElementById('mcts-step-btn');
+                    const playBtn = document.getElementById('mcts-play-btn');
+                    const resetBtn = document.getElementById('mcts-reset-btn');
+                    stepBtn.onclick = runIteration;
+                    playBtn.onclick = togglePlay;
+                    resetBtn.onclick = reset;
+                }
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.width * 0.66;
+
 
                 function createNode(parent) {
                     return {
-                        id: nodeIdCounter++,
-                        parent: parent,
-                        children: [],
-                        visits: 0,
-                        value: 0,
-                        x: 0, y: 0,
-                        numUnexplored: Math.floor(2 + Math.random() * 2) // Each node has 2-3 possible moves
+                        id: mctsState.nodeIdCounter++, parent: parent, children: [], visits: 0, value: 0, x: 0, y: 0,
+                        numUnexplored: Math.floor(2 + Math.random() * 2) 
                     };
                 }
 
                 function reset() {
-                    nodeIdCounter = 0;
-                    tree = createNode(null);
-                    tree.x = canvas.width / 2;
-                    tree.y = 50;
-                    statusEl.textContent = "Status: Ready";
-                    if(playInterval) clearInterval(playInterval);
-                    isPlaying = false;
-                    playBtn.textContent = 'Auto-Play';
-                    stepBtn.disabled = false;
+                    mctsState.nodeIdCounter = 0;
+                    mctsState.tree = createNode(null);
+                    if(mctsState.playInterval) clearInterval(mctsState.playInterval);
+                    mctsState.isPlaying = false;
+                    document.getElementById('mcts-play-btn').textContent = 'Auto-Play';
+                    document.getElementById('mcts-step-btn').disabled = false;
                     drawTree();
                 }
 
@@ -1602,43 +1662,41 @@
                     ctx.textBaseline = 'middle';
                     const valueText = `${node.value.toFixed(1)} / ${node.visits}`;
                     ctx.fillText(valueText, node.x, node.y);
-                    ctx.font = '10px Inter';
-                    ctx.fillText(`id: ${node.id}`, node.x, node.y + 12);
                 }
 
                 function drawEdge(parent, child) {
                     ctx.beginPath();
-                    ctx.moveTo(parent.x, parent.y + NODE_RADIUS);
-                    ctx.lineTo(child.x, child.y - NODE_RADIUS);
+                    ctx.moveTo(parent.x, parent.y);
+                    ctx.lineTo(child.x, child.y);
                     ctx.strokeStyle = '#a1a1aa';
                     ctx.lineWidth = 1;
                     ctx.stroke();
                 }
                 
-                function setNodePositions(node, x, y, width) {
+                function setNodePositions(node, x, y, width, level) {
                     node.x = x;
-                    node.y = y;
+                    node.y = y + level * 80;
                     if (node.children.length === 0) return;
-
                     const childWidth = width / node.children.length;
                     node.children.forEach((child, i) => {
-                        setNodePositions(child, x - width/2 + childWidth/2 + i*childWidth, y + 80, childWidth);
+                        setNodePositions(child, x - width/2 + childWidth/2 + i*childWidth, y, level + 1);
                     });
                 }
 
                 function drawTree(highlightPath = []) {
+                    const statusEl = document.getElementById('mcts-status');
+                    statusEl.textContent = "Status: Ready";
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    setNodePositions(tree, canvas.width / 2, 50, canvas.width * 0.8);
+                    setNodePositions(mctsState.tree, canvas.width / 2, 50, canvas.width * 0.9, 0);
                     
-                    const nodesToDraw = [tree];
+                    const nodesToDraw = [mctsState.tree];
                     while(nodesToDraw.length > 0) {
                         const node = nodesToDraw.pop();
-                        if (node.parent) drawEdge(node.parent, node);
+                        node.children.forEach(child => drawEdge(node, child));
                         nodesToDraw.push(...node.children);
                     }
-
                      const highlightSet = new Set(highlightPath.map(n => n.id));
-                     const nodesToDrawAgain = [tree];
+                     const nodesToDrawAgain = [mctsState.tree];
                       while(nodesToDrawAgain.length > 0) {
                         const node = nodesToDrawAgain.pop();
                         const highlightColor = highlightSet.has(node.id) ? '#4A90E2' : 'black';
@@ -1655,80 +1713,47 @@
                 }
 
                 async function runIteration() {
-                    stepBtn.disabled = true;
-                    
-                    // 1. Selection
-                    statusEl.textContent = '1. Selection: Finding best leaf...';
-                    let currentNode = tree;
+                    document.getElementById('mcts-step-btn').disabled = true;
+                    let currentNode = mctsState.tree;
                     let path = [currentNode];
                     while (currentNode.children.length > 0 && currentNode.numUnexplored === 0) {
                         currentNode = currentNode.children.reduce((best, child) => ucb1(child) > ucb1(best) ? child : best);
                         path.push(currentNode);
-                        drawTree(path);
-                        await new Promise(r => setTimeout(r, 400));
                     }
-                    drawTree(path);
-
-                    // 2. Expansion
-                    statusEl.textContent = '2. Expansion: Adding a new node.';
-                    await new Promise(r => setTimeout(r, 500));
                     if (currentNode.numUnexplored > 0) {
                         const newNode = createNode(currentNode);
                         currentNode.children.push(newNode);
                         currentNode.numUnexplored--;
-                        currentNode = newNode; // The new node becomes current for simulation
+                        currentNode = newNode;
                         path.push(currentNode);
                     }
-                    drawTree(path);
-
-
-                    // 3. Simulation
-                    statusEl.textContent = '3. Simulation: Running random rollout...';
-                    await new Promise(r => setTimeout(r, 500));
-                    const result = Math.random() > 0.5 ? 1 : -1; // Win or Loss
-                     // Simple visual for simulation
-                    ctx.beginPath();
-                    ctx.arc(currentNode.x, currentNode.y, NODE_RADIUS + 5, 0, Math.PI * 2);
-                    ctx.strokeStyle = result > 0 ? '#10B981' : '#EF4444';
-                    ctx.lineWidth = 4;
-                    ctx.stroke();
-                    ctx.font = 'bold 20px Inter';
-                    ctx.fillStyle = result > 0 ? '#10B981' : '#EF4444';
-                    ctx.fillText(result > 0 ? '+1' : '-1', currentNode.x + 40, currentNode.y);
-
-
-                    // 4. Backpropagation
-                    statusEl.textContent = '4. Backpropagation: Updating values.';
-                    await new Promise(r => setTimeout(r, 800));
+                    const result = Math.random() > 0.5 ? 1 : -1;
                     for (let i = path.length - 1; i >= 0; i--) {
                         const node = path[i];
                         node.visits++;
                         node.value += result;
-                        drawTree(path.slice(0, i + 1));
-                         await new Promise(r => setTimeout(r, 400));
                     }
-
-                    statusEl.textContent = "Status: Ready";
-                    stepBtn.disabled = false;
+                    drawTree();
+                    document.getElementById('mcts-step-btn').disabled = false;
                 }
 
-                stepBtn.addEventListener('click', runIteration);
-                resetBtn.addEventListener('click', reset);
-                playBtn.addEventListener('click', () => {
-                    isPlaying = !isPlaying;
-                    if (isPlaying) {
+                 const togglePlay = () => {
+                    mctsState.isPlaying = !mctsState.isPlaying;
+                    const playBtn = document.getElementById('mcts-play-btn');
+                    if (mctsState.isPlaying) {
                         playBtn.textContent = 'Pause';
-                        stepBtn.disabled = true;
+                        document.getElementById('mcts-step-btn').disabled = true;
                         runIteration();
-                        playInterval = setInterval(runIteration, (path) => (path ? path.length * 800 + 2200 : 5000));
+                        mctsState.playInterval = setInterval(runIteration, 1000);
                     } else {
                         playBtn.textContent = 'Auto-Play';
-                        stepBtn.disabled = false;
-                        clearInterval(playInterval);
+                        document.getElementById('mcts-step-btn').disabled = false;
+                        clearInterval(mctsState.playInterval);
                     }
-                });
+                }
 
-                reset();
+                if(!mctsState.tree) reset();
+                else drawTree();
             }
 
         });
