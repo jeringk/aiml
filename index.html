@@ -2,20 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Redirecting...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Has Moved - Redirecting...</title>
     
     <link rel="canonical" href="https://worldofai.pages.dev">
     
-    <meta http-equiv="refresh" content="0; url=https://worldofai.pages.dev">
+    <meta http-equiv="refresh" content="5; url=https://worldofai.pages.dev">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f7fafc;
+            color: #1a202c;
+            display: grid;
+            place-items: center;
+            min-height: 90vh;
+            text-align: center;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 2rem 2.5rem;
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            font-size: 1.875rem; /* 30px */
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        p {
+            font-size: 1.125rem; /* 18px */
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        .url-box {
+            background-color: #edf2f7;
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            word-break: break-all;
+        }
+        a {
+            color: #3182ce;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>trivial:
 </head>
 <body>
-    <p>
-        This page has moved. If you are not redirected automatically,
-        <a href="https://worldofai.pages.dev">click here to go to the new site</a>.
-    </p>
-    
+
+    <div class="container">
+        <h1>We've Moved!</h1>
+        <p>
+            This site has a new address. Please <strong>update your bookmarks</strong> to point to the new location.
+        </p>
+        <div class="url-box">
+            <a href="https://worldofai.pages.dev">https://worldofai.pages.dev</a>
+        </div>
+        <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #718096;">
+            You will be redirected automatically in 5 seconds...
+        </p>
+    </div>
+
     <script>
-        window.location.replace('https://worldofai.pages.dev');
+        setTimeout(function() {
+            window.location.replace('https://worldofai.pages.dev');
+        }, 5000); // 5000 milliseconds = 5 seconds
     </script>
+
 </body>
 </html>
